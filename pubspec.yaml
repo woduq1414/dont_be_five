@@ -23,6 +23,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  confetti: ^0.5.4+1
   touchable:
   provider: ^4.1.0
   vibration: ^1.5.0

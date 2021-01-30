@@ -40,13 +40,13 @@ class _GamePageState extends State<GamePage> {
         List<LevelData> levelDataList = gs.levelDataList;
 
         if (levelDataList != null) {
-          print("nonu");
+
           _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
-          print(_currentLevelData.map);
+
         } else {}
       }
     });
-    print(_currentLevelData);
+
 
     return Container(
       child: GameMap(levelData: _currentLevelData,),
