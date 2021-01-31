@@ -5,6 +5,7 @@ class SelectMode {
 
   static const SelectMode normal = SelectMode("normal");
   static const SelectMode move = SelectMode("move");
+  static const SelectMode itemTargetSelect = SelectMode("itemTargetSelect");
 
 
 

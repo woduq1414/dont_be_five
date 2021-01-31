@@ -5,8 +5,9 @@ class LevelData {
   int mapWidth;
   int mapHeight;
   List<dynamic> map;
+  Map<String, dynamic> items;
 
-  LevelData({this.seq, this.mapWidth, this.mapHeight, this.map});
+  LevelData({this.seq, this.mapWidth, this.mapHeight, this.map, this.items});
 
   factory LevelData.fromJson(Map<String, dynamic> json) {
     return LevelData(
@@ -14,10 +15,11 @@ class LevelData {
       mapWidth: json['mapWidth'] as int,
       mapHeight: json['mapHeight'] as int,
       map: json['map'] as List<dynamic>,
+      items: json["items"] as Map<String, dynamic>
     );
   }
 
-  Map<String, dynamic> toJson() => {'seq': seq, 'mapWidth': mapWidth, 'mapHeight': mapHeight, 'map': map};
+  Map<String, dynamic> toJson() => {'seq': seq, 'mapWidth': mapWidth, 'mapHeight': mapHeight, 'map': map, 'items' : items};
 
   LevelData clone() {
     final jsonResponse = json.decode(json.encode(this));

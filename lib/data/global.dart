@@ -20,11 +20,11 @@ Map<String, dynamic> levelData;
 void init(){
   parseJsonFromAssets('assets/json/levelData.json').then((value) {
     levelData = value;
-    print(levelData);
+
   });
 }
 main() {
-  print("init1");
+
   init();
 }
 

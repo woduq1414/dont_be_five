@@ -56,6 +56,8 @@ void moveToLevel({int level, BuildContext context}) async {
   _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
 
 
+  gs.deviceSize = MediaQuery.of(context).size;
+
   gs.levelData = _currentLevelData.clone();
   gs.tileCornerOffsetList = calcTileCornerOffsetList(levelData: _currentLevelData, context: context);
   gs.personDataList = makePersonDataList(levelData: _currentLevelData, context: context);

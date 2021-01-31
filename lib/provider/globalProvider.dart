@@ -1,13 +1,16 @@
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
+import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/SelectMode.dart';
 import 'package:dont_be_five/data/SelectType.dart';
 import 'package:dont_be_five/data/Tiles.dart';
+import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/widget/Person.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/widget/Tile.dart';
+import 'package:dont_be_five/widget/Toast.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -19,6 +22,150 @@ import 'package:vibration/vibration.dart';
 
 class GlobalStatus with ChangeNotifier {
 //  KakaoContext.clientId = '39d6c43a0a346cca6ebc7b2dbb8e4353';
+
+  void printAllPersonData() {
+    for (PersonData p in personDataList) {
+      print("${p.x} ${p.y} : ${p.idx} / ${p.count} : ${p.hash}");
+    }
+  }
+
+  bool isIsolated({TileData tile}) {
+    for (TileData t in _isolatedTileList) {
+      if (t.x == tile.x && t.y == tile.y) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  List<TileData> _isolatedTileList = [];
+
+  List<TileData> get isolatedTileList => _isolatedTileList;
+
+  set isolatedTileList(List<TileData> value) {
+    _isolatedTileList = value;
+  }
+
+  ItemData _selectedItem;
+
+  ItemData get selectedItem => _selectedItem;
+
+  set selectedItem(ItemData value) {
+    _selectedItem = value;
+  }
+
+  void selectItem(ItemData item) {
+    selectMode = SelectMode.itemTargetSelect;
+    Set<TileData> tempSet = Set();
+    _highlightTileMap[HighlightTile.selectable] = [];
+    _highlightTileMap[HighlightTile.selected] = [];
+    _highlightTileMap[HighlightTile.moveable] = [];
+
+    if (item == null) {
+      _highlightTileMap[HighlightTile.selectable] = [];
+      _selectedItem = null;
+      return;
+    }
+
+    if (_levelData.items[item.name] <= 0) {
+      return;
+    }
+    selectedItem = item;
+    if (item == ItemData.isolate) {
+      for (int i = 0; i < _levelData.mapHeight; i++) {
+        for (int j = 0; j < _levelData.mapWidth; j++) {
+          Tiles tileType = Tiles.getTileType(tile: TileData(x: j, y: i), levelData: levelData);
+          if (tileType == Tiles.person || tileType == Tiles.player) {
+            if (!isIsolated(tile: TileData(x: j, y: i))) {
+              _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
+            }
+          }
+        }
+      }
+
+      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+        showCustomToast("자가격리 대상이 없습니다.", ToastType.small);
+        _highlightTileMap[HighlightTile.selectable] = [];
+        _selectedItem = null;
+      }else{
+        showCustomToast("자가격리 대상을 선택해주세요.", ToastType.small);
+      }
+
+    } else if (item == ItemData.release) {
+      _highlightTileMap[HighlightTile.selectable] = _isolatedTileList;
+      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+        showCustomToast("자가격리 해제 대상이 없습니다.", ToastType.small);
+        _highlightTileMap[HighlightTile.selectable] = [];
+        _selectedItem = null;
+      }else{
+        showCustomToast("자가격리 해제 대상을 선택해주세요.", ToastType.small);
+      }
+    } else if (item == ItemData.vaccine) {
+      for (int i = 0; i < _levelData.mapHeight; i++) {
+        for (int j = 0; j < _levelData.mapWidth; j++) {
+          Tiles tileType = Tiles.getTileType(tile: TileData(x: j, y: i), levelData: levelData);
+          if (tileType == Tiles.person) {
+            _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
+          }
+        }
+      }
+      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+        showCustomToast("백신 투약 대상이 없습니다.", ToastType.small);
+        _highlightTileMap[HighlightTile.selectable] = [];
+        _selectedItem = null;
+      }else{
+        showCustomToast("백신 투약 대상을 선택해주세요.", ToastType.small);
+      }
+    } else {}
+
+
+
+    notifyListeners();
+  }
+
+  double s1() {
+    return _deviceSize.width * 0.1;
+  }
+
+  double s2() {
+    return _deviceSize.width * 0.08;
+  }
+
+  double s3() {
+    return _deviceSize.width * 0.06;
+  }
+
+  double s4() {
+    return _deviceSize.width * 0.05;
+  }
+
+  double s5() {
+    return _deviceSize.width * 0.04;
+  }
+
+  double s6() {
+    return _deviceSize.width * 0.03;
+  }
+
+  double s7() {
+    return _deviceSize.width * 0.02;
+  }
+
+  double s8() {
+    return _deviceSize.width * 0.01;
+  }
+
+  double s9() {
+    return _deviceSize.width * 0.008;
+  }
+
+  Size _deviceSize;
+
+  Size get deviceSize => _deviceSize;
+
+  set deviceSize(Size value) {
+    _deviceSize = value;
+  }
 
   TileData _goalTile;
 
@@ -42,15 +189,22 @@ class GlobalStatus with ChangeNotifier {
         _selectedTile = null;
         _highlightTileMap[HighlightTile.moveable] = [];
         _highlightTileMap[HighlightTile.selected] = [];
+        _highlightTileMap[HighlightTile.selectable] = [];
         return;
       }
 
       _selectedTile = tile;
       _highlightTileMap[HighlightTile.selected] = [];
       _highlightTileMap[HighlightTile.moveable] = [];
+      _highlightTileMap[HighlightTile.selectable] = [];
 
       if (!(Tiles.getTileType(tile: tile, levelData: _levelData) == Tiles.player ||
           Tiles.getTileType(tile: tile, levelData: _levelData) == Tiles.person)) {
+        return;
+      }
+
+      if (isIsolated(tile: tile)) {
+        showCustomToast("자가격리 중입니다!", ToastType.normal);
         return;
       }
 
@@ -69,11 +223,8 @@ class GlobalStatus with ChangeNotifier {
 
       _highlightTileMap[HighlightTile.selected] = [tile];
 
-      print(_highlightTileMap);
       _selectMode = SelectMode.move;
     } else if (selectType == SelectType.personMove) {
-      print(_highlightTileMap);
-
       bool isTargetTile = _highlightTileMap[HighlightTile.moveable]
                   .where((element) => element.x == tile.x && element.y == tile.y)
                   .toList()
@@ -82,10 +233,8 @@ class GlobalStatus with ChangeNotifier {
           ? true
           : false;
       // print( _availableTileList.where((element) => element.x == tile.x && element.y == tile.y).toList().length);
-      print(isTargetTile);
 
       if (isTargetTile) {
-        print("@@@@@@@@@@@@@@@@@@@@@@22");
         Direction d = Direction(tile.x - _selectedTile.x, tile.y - _selectedTile.y);
 
         movePerson(tile: selectedTile, d: d);
@@ -95,12 +244,66 @@ class GlobalStatus with ChangeNotifier {
 
       // _selectMode = SelectMode.normal;
 
+    } else if (selectType == SelectType.itemTargetSelect) {
+      bool isTargetTile = _highlightTileMap[HighlightTile.selectable]
+                  .where((element) => element.x == tile.x && element.y == tile.y)
+                  .toList()
+                  .length !=
+              0
+          ? true
+          : false;
+      // print( _availableTileList.where((element) => element.x == tile.x && element.y == tile.y).toList().length);
+
+      if (isTargetTile) {
+        _highlightTileMap[HighlightTile.selectable] = [];
+
+        if (selectedItem == ItemData.isolate) {
+          _isolatedTileList.add(tile);
+          _highlightTileMap[HighlightTile.isolated].add(tile);
+          _levelData.items[selectedItem.name] -= 1;
+
+          showCustomToast("자가격리!", ToastType.normal);
+        } else if (selectedItem == ItemData.release) {
+          _isolatedTileList.removeWhere((element) => element.x == tile.x && element.y == tile.y);
+          _highlightTileMap[HighlightTile.isolated].removeWhere((element) => element.x == tile.x && element.y == tile.y);
+          notifyListeners();
+          if (isFive(tile: tile)) {
+            _isolatedTileList.add(tile);
+            Future.delayed(const Duration(milliseconds: 350), () {
+              _highlightTileMap[HighlightTile.isolated].add(tile);
+              notifyListeners();
+            });
+          } else {
+            _levelData.items[selectedItem.name] -= 1;
+            showCustomToast("자가격리 해제!", ToastType.normal);
+          }
+        } else if (selectedItem == ItemData.vaccine) {
+          _personDataList
+              .removeWhere((p) => (p.x == tile.x && p.y == tile.y && p.idx == _levelData.map[tile.y][tile.x] - 1));
+
+          _levelData.map[tile.y][tile.x] -= 1;
+          _levelData.items[selectedItem.name] -= 1;
+          showCustomToast("백신 투약!", ToastType.normal);
+        }
+      } else {
+        selectTile(tile: tile, selectType: SelectType.personSelect);
+      }
+
+      _selectedItem = null;
+
+      // _selectMode = SelectMode.normal;
+
     }
     notifyListeners();
   }
 
   bool isSelectableTile({TileData tile, SelectMode selectMode}) {
     TileData t = tile;
+
+    if (isIsolated(tile: tile)) {
+      return false;
+    }
+
     if (selectMode == SelectMode.normal) {
       return t.x >= 0 &&
           t.x < _levelData.mapWidth &&
@@ -192,9 +395,13 @@ class GlobalStatus with ChangeNotifier {
       HighlightTile.selected: [],
       HighlightTile.moveable: [],
       HighlightTile.five: [],
+      HighlightTile.isolated: [],
+      HighlightTile.selectable: [],
     };
+    _isolatedTileList = [];
     _selectedTile = null;
     _personDataList = [];
+    _selectedItem = null;
     _selectMode = SelectMode.normal;
   }
 
@@ -273,14 +480,13 @@ class GlobalStatus with ChangeNotifier {
 
   bool isFive({TileData tile}) {
     bool fiveFlag = false;
-    for (Direction d in [Direction(0,0), Direction.down, Direction.left, Direction.right, Direction.up]) {
+    for (Direction d in [Direction(0, 0), Direction.down, Direction.left, Direction.right, Direction.up]) {
       TileData destTile = TileData(x: tile.x + d.x, y: tile.y + d.y);
       int cnt = 0;
 
       if (isSelectableTile(tile: destTile, selectMode: SelectMode.move)) {
-
-        Tiles destTileType = Tiles.getTileType(tile:destTile, levelData:_levelData);
-        if(destTileType != Tiles.person && destTileType != Tiles.player){
+        Tiles destTileType = Tiles.getTileType(tile: destTile, levelData: _levelData);
+        if (destTileType != Tiles.person && destTileType != Tiles.player) {
           continue;
         }
 
@@ -302,13 +508,17 @@ class GlobalStatus with ChangeNotifier {
               _highlightTileMap[HighlightTile.five].add(destTile_2);
             }
           }
-
         }
       }
     }
     Future.delayed(const Duration(milliseconds: 350), () {
       _highlightTileMap[HighlightTile.five] = [];
     });
+
+    if (fiveFlag) {
+      showCustomToast("5인 이상 집합 금지!", ToastType.normal);
+    }
+
     return fiveFlag;
   }
 }

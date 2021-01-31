@@ -50,7 +50,7 @@ class _PersonState extends State<Person> {
   @override
   Widget build(BuildContext context) {
 
-    GlobalStatus gs = context.watch<GlobalStatus>();
+    GlobalStatus gs = Provider.of<GlobalStatus>(context);
 
     PersonData targetPersonData;
     try{
@@ -60,6 +60,7 @@ class _PersonState extends State<Person> {
     }
 
     if(targetPersonData == null){
+
       return Container();
     }
 
@@ -69,7 +70,7 @@ class _PersonState extends State<Person> {
       _x = targetPersonData.x;
       _y = targetPersonData.y;
       _idx = targetPersonData.idx;
-      _count = targetPersonData.count;
+      // _count = targetPersonData.count;
 
       _isPlayer = targetPersonData.isPlayer;
 
@@ -79,13 +80,12 @@ class _PersonState extends State<Person> {
 
 
 
-      print("rebuild!!!!!!!");
 
       // tileCornerOffsetList =
-
+      double r = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 5;
       if(_isPlayer == true){
-        _width = 27;
-        _height = 50;
+        _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 3;
+        _height = _width * 1.9;
         _count -= 100;
 
 
@@ -97,16 +97,15 @@ class _PersonState extends State<Person> {
 
           double theta = (360 / _count * _idx) * (pi / 180);;
 
-          _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * 15;
-          _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * 15;
+          _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * r;
+          _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * r;
         }else{
           _dx = _tileCornerOffsetList[_y][_x].dx;
           _dy = _tileCornerOffsetList[_y][_x].dy;
         }
       }else{
-        _width = 27;
-        _height = 50;
-
+        _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 4;
+        _height = _width * 1.9;
 
 
         if(_count == 1){
@@ -116,8 +115,8 @@ class _PersonState extends State<Person> {
 
           double theta = (360 / _count * _idx) * (pi / 180);;
 
-          _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * 15;
-          _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * 15;
+          _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * r;
+          _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * r;
         }else{
           _dx = _tileCornerOffsetList[_y][_x].dx;
           _dy = _tileCornerOffsetList[_y][_x].dy;

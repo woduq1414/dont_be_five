@@ -52,4 +52,11 @@ class Tiles {
     }
   }
 
+  static Offset getTileCenterOffset({TileData tile, List<dynamic> tileCornerOffsetList}) {
+    return Offset(
+        (tileCornerOffsetList[tile.y][tile.x].dx + tileCornerOffsetList[tile.y + 1][tile.x + 1].dx) / 2,
+        (tileCornerOffsetList[tile.y][tile.x].dy + tileCornerOffsetList[tile.y + 1][tile.x + 1].dy) / 2
+    );
+  }
+
 }

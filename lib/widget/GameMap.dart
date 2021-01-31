@@ -3,12 +3,16 @@ import 'dart:ui' as ui;
 import 'package:dont_be_five/common/paint.dart';
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
+import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/SelectMode.dart';
 import 'package:dont_be_five/data/SelectType.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
+import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/path.dart';
@@ -21,7 +25,9 @@ import 'package:touchable/touchable.dart';
 import 'package:confetti/confetti.dart';
 
 import 'Goal.dart';
+import 'Item.dart';
 import 'Person.dart';
+import 'Toast.dart';
 
 double interDivision({double start, double end, var m, var n}) {
   return (start * n + end * m) / (m + n);
@@ -48,6 +54,8 @@ class _GameMapState extends State<GameMap> {
 
   _GameMapState(this.levelData);
 
+  List<Widget> _cachedPersonBuilder;
+
   List<dynamic> _tileCornerOffsetList = [];
 
   @override
@@ -64,11 +72,14 @@ class _GameMapState extends State<GameMap> {
       _tileCornerOffsetList = gs.tileCornerOffsetList;
     });
 
+    if (_cachedPersonBuilder == null) {
+      _cachedPersonBuilder = personBuilder(context: context);
+    }
+
     return Container(
         color: Colors.white,
         child: Stack(
           children: <Widget>[
-
             SizedBox.expand(
               child: CustomPaint(
                 painter: BackgroundPainter(context: context),
@@ -76,55 +87,123 @@ class _GameMapState extends State<GameMap> {
             ),
             SizedBox.expand(
               child: CanvasTouchDetector(
-                builder: (context) =>
-                    CustomPaint(
-                      painter: MapPainter(
-                          levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
-                    ),
+                builder: (context) => CustomPaint(
+                  painter: MapPainter(levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
+                ),
               ),
             ),
             CustomPaint(
               painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
             ),
             Goal(),
-            ...personBuilder(context: context),
-
-            utilButtonContainerBuilder(context: context)
+            ..._cachedPersonBuilder,
+            utilButtonContainerBuilder(context: context),
+            itemContainerBuilder(context: context)
           ],
         ));
   }
 }
 
-
-Widget utilButtonContainerBuilder({BuildContext context}){
+Widget utilButtonContainerBuilder({BuildContext context}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context);
   return Positioned(
     right: 20,
     top: 30,
     child: Container(
-
-      decoration: BoxDecoration(
-        color: Color.fromRGBO(200, 200, 200, 0.8),
-        borderRadius: BorderRadius.all(Radius.circular(10))
-      ),
-      child: GestureDetector(
-        onTap: (){
-          Navigator.of(context).pop();
-          moveToLevel(level: 1, context: context);
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-          decoration: BoxDecoration(
-              color: Color.fromRGBO(150, 150, 150, 0.5),
-              borderRadius: BorderRadius.all(Radius.circular(10))
+        decoration:
+            BoxDecoration(color: Color.fromRGBO(200, 200, 200, 0.8), borderRadius: BorderRadius.all(Radius.circular(10))),
+        child: GestureDetector(
+          onTap: () {
+            // gs.printAllPersonData();
+            // showCustomToast("sdjflkjsdklfjklsdf", ToastType.normal);
+            Navigator.of(context).pop();
+            moveToLevel(level: 1, context: context);
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+            decoration: BoxDecoration(
+                color: Color.fromRGBO(150, 150, 150, 0.5), borderRadius: BorderRadius.all(Radius.circular(10))),
+            child: Icon(Icons.replay),
           ),
-          child: Icon(Icons.replay),
-        ),
-      )
+        )),
+  );
+}
+
+Widget itemContainerBuilder({BuildContext context}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context);
+  return Positioned.fill(
+    bottom: 80,
+    child: Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+          decoration:
+              BoxDecoration(color: Color.fromRGBO(50, 50, 50, 0.7), borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: gs.levelData.items.keys.map<Widget>((item) {
+                  return Item(itemName: item);
+                }).toList()),
+          )),
     ),
   );
 }
 
+Widget itemBuilder({BuildContext context, String itemName}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context);
 
+  ItemData item;
+
+  switch (itemName) {
+    case "isolate":
+      item = ItemData.isolate;
+      break;
+    case "release":
+      item = ItemData.release;
+      break;
+    case "vaccine":
+      item = ItemData.vaccine;
+      break;
+  }
+
+  return Container(
+    margin: EdgeInsets.symmetric(horizontal: 5),
+    child: GestureDetector(
+      onTap: () {
+        gs.selectItem(item);
+      },
+      child: Container(
+          decoration:
+              BoxDecoration(color: Color.fromRGBO(240, 240, 240, 0.8), borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Stack(
+            children: <Widget>[
+              Container(
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  child: Image.asset(
+                    item.imagePath,
+                    width: 35,
+                  )),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(50))),
+                  child: Material(
+                      color: Colors.transparent,
+                      child: Text(
+                        gs.levelData.items[itemName].toString(),
+                        style: TextStyle(fontSize: gs.s6()),
+                      )),
+                ),
+              )
+            ],
+          )),
+    ),
+  );
+}
 
 class MapPainter extends CustomPainter {
   LevelData levelData;
@@ -157,7 +236,6 @@ class MapPainter extends CustomPainter {
       ..color = Color.fromRGBO(0, 0, 0, 0.35)
       ..strokeWidth = 1;
 
-
     Paint tileFillPaint = Paint()
       ..shader = ui.Gradient.linear(
         tileCornerOffsetList[levelData.mapHeight][0],
@@ -165,15 +243,13 @@ class MapPainter extends CustomPainter {
         [Colors.white, Color.fromRGBO(250, 250, 250, 1)],
       );
 
-
     ////////////////////////////////////////////////////////
 
     GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
     var myCanvas = TouchyCanvas(context, canvas);
 
-
     var borderCornerList =
-    new List<List>.generate(levelData.mapHeight + 1, (i) => List<bool>.generate(levelData.mapWidth + 1, (j) => false));
+        new List<List>.generate(levelData.mapHeight + 1, (i) => List<bool>.generate(levelData.mapWidth + 1, (j) => false));
 
     for (int i = 0; i < levelData.mapHeight; i++) {
       int startIdx;
@@ -283,7 +359,6 @@ class MapPainter extends CustomPainter {
           continue;
         }
 
-
         Path path = new Path();
         List<Offset> points = [
           tileCornerOffsetList[i][j],
@@ -294,13 +369,16 @@ class MapPainter extends CustomPainter {
         path.addPolygon(points, true);
 
         myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
-          print("${i}, ${j} ${DateTime.now()}");
+
           // gs.movePerson(x:j, y:i, d : Direction(-1,0));
           if (gs.selectMode == SelectMode.normal) {
             gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
           } else if (gs.selectMode == SelectMode.move) {
-            print("!@#!@#");
+            // print("!@#!@#");
             gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personMove);
+          } else if (gs.selectMode == SelectMode.itemTargetSelect) {
+            // print("!@#!@#");
+            gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.itemTargetSelect);
           }
         });
         canvas.drawPath(
@@ -318,14 +396,13 @@ class MapPainter extends CustomPainter {
 }
 
 List<Widget> personBuilder({BuildContext context}) {
-  GlobalStatus gs = context.watch<GlobalStatus>();
-  List<PersonData> personDataList = gs.personDataList;
+  List<PersonData> personDataList = context.select((GlobalStatus gs) => gs.personDataList);
+  // = gs.personDataList;
 
   return personDataList.map((x) {
     return Person(
       hash: x.hash,
     );
-
   }).toList();
 }
 
@@ -344,7 +421,8 @@ class HighlightTilePainter extends CustomPainter {
         int i = t.y;
         int j = t.x;
 
-        Paint paint = HighlightTile.getPaint(highlightType: key);
+        Paint paint = HighlightTile.getPaint(
+            highlightType: key, targetTile: t, selectedTile: gs.selectedTile, tileCornerOffsetList: gs.tileCornerOffsetList);
 
         Path path = new Path();
         List<Offset> points = [
@@ -359,6 +437,38 @@ class HighlightTilePainter extends CustomPainter {
           path,
           paint,
         );
+
+        if (key == HighlightTile.isolated) {
+          double distance = 20;
+          double stroke = 3;
+          Offset position = path.getBounds().center;
+          double widthf = path.getBounds().width / 2.0;
+          double heightf = path.getBounds().height / 2.0;
+
+          Path _path = Path();
+          _path.moveTo(position.dx, position.dy);
+          for (int i = 0; i < widthf / distance * 2; i++) {
+            _path.relativeMoveTo(-distance * i, 0);
+            _path.relativeMoveTo(widthf, -heightf);
+            _path.relativeLineTo(-widthf * 2, heightf * 2);
+            _path.moveTo(position.dx, position.dy);
+
+            _path.relativeMoveTo(distance * i, 0);
+            _path.relativeMoveTo(widthf, -heightf);
+            _path.relativeLineTo(-widthf * 2, heightf * 2);
+            _path.moveTo(position.dx, position.dy);
+          }
+          canvas.save();
+          canvas.clipPath(path);
+
+          canvas.drawPath(
+              _path..fillType = PathFillType.evenOdd,
+              Paint()
+                ..color = Colors.redAccent.withOpacity(0.7)
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = stroke);
+          canvas.restore();
+        }
       }
     }
 
@@ -375,22 +485,21 @@ class HighlightTilePainter extends CustomPainter {
 class BackgroundPainter extends CustomPainter {
   final BuildContext context;
 
-
   BackgroundPainter({this.context});
 
   @override
   void paint(Canvas canvas, Size size) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
 
-
     Paint backgroundPaint = Paint()
       ..shader = ui.Gradient.linear(
-        Offset(size.width/2,0),
-        Offset(size.width/2, size.height),
-        [ Colors.purpleAccent, Colors.deepPurpleAccent,],
+        Offset(size.width / 2, 0),
+        Offset(size.width / 2, size.height),
+        [
+          Colors.purpleAccent,
+          Colors.deepPurpleAccent,
+        ],
       );
-  
-
 
     Path path = new Path();
     List<Offset> points = [
