@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:dont_be_five/common/firebase.dart';
+import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
+import 'package:dont_be_five/page/LevelSelectPage.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:dont_be_five/widget/Person.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
@@ -22,16 +26,53 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void initState() {
+
+    AdManager.init();
+    AdManager.showBanner();
+    // TODO: implement initState
+    super.initState();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
-
+    gs.deviceSize = MediaQuery.of(context).size;
     return Scaffold(
         body: Center(
-            child: RaisedButton(
-              child: Text("gg"),
-              onPressed: () async {
-                moveToLevel(level: 1, context: context);
-              },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton(
+                  child: Text("sample map 1"),
+                  onPressed: () async {
+                    moveToLevel(level: 1, context: context);
+                  },
+                ),
+                RaisedButton(
+                  child: Text("sample map 2"),
+                  onPressed: () async {
+                    moveToLevel(level: 2, context: context);
+                  },
+                ),
+                RaisedButton(
+                  child: Text("sample map 3"),
+                  onPressed: () async {
+                    moveToLevel(level: 3, context: context);
+                  },
+                ),
+                RaisedButton(
+                  child: Text("level select"),
+                  onPressed: () async {
+
+                    Navigator.push(
+                      context,
+                      FadeRoute(page: LevelSelectPage()),
+                    );
+                  },
+                )
+              ],
             )));
   }
 
@@ -52,6 +93,7 @@ void moveToLevel({int level, BuildContext context}) async {
   LevelData _currentLevelData;
   gs.initLevel();
 
+  gs.context = context;
 
   _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
 
@@ -74,12 +116,9 @@ void moveToLevel({int level, BuildContext context}) async {
 
 
   Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) =>
-              GamePage(
-                level: 1,
-              )));
+    context,
+    FadeRoute(page: GamePage(level: level,)),
+  );
 }
 
 

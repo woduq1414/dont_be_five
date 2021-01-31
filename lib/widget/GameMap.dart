@@ -11,6 +11,8 @@ import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/painter/BackgroundPainter.dart';
+import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +45,9 @@ class GameMap extends StatefulWidget {
 }
 
 class _GameMapState extends State<GameMap> {
+
+  bool _isGoalDialogShowing = false;
+
   LevelData levelData;
   double deviceWidth;
   double deviceHeight;
@@ -75,6 +80,16 @@ class _GameMapState extends State<GameMap> {
     if (_cachedPersonBuilder == null) {
       _cachedPersonBuilder = personBuilder(context: context);
     }
+
+    if(gs.isGameEnd && _isGoalDialogShowing == false){
+      _isGoalDialogShowing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showGoalDialog(context);
+      });
+
+    }
+
+
 
     return Container(
         color: Colors.white,
@@ -116,8 +131,12 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
           onTap: () {
             // gs.printAllPersonData();
             // showCustomToast("sdjflkjsdklfjklsdf", ToastType.normal);
+
+
+            // YYDialogDemo(context);
+
             Navigator.of(context).pop();
-            moveToLevel(level: 1, context: context);
+            moveToLevel(level: gs.levelData.seq, context: context);
           },
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
@@ -482,44 +501,4 @@ class HighlightTilePainter extends CustomPainter {
   }
 }
 
-class BackgroundPainter extends CustomPainter {
-  final BuildContext context;
 
-  BackgroundPainter({this.context});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-
-    Paint backgroundPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(size.width / 2, 0),
-        Offset(size.width / 2, size.height),
-        [
-          Colors.purpleAccent,
-          Colors.deepPurpleAccent,
-        ],
-      );
-
-    Path path = new Path();
-    List<Offset> points = [
-      Offset(0, 0),
-      Offset(MediaQuery.of(context).size.width, 0),
-      Offset(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
-      Offset(0, MediaQuery.of(context).size.height),
-    ];
-    path.addPolygon(points, true);
-
-    canvas.drawPath(
-      path,
-      backgroundPaint,
-    );
-    // TODO: implement paint
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    // TODO: implement shouldRepaint
-    return true;
-  }
-}

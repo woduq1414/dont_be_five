@@ -7,6 +7,7 @@ import 'package:dont_be_five/data/SelectMode.dart';
 import 'package:dont_be_five/data/SelectType.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/data/ToastType.dart';
+import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/widget/Person.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/widget/Tile.dart';
@@ -22,6 +23,19 @@ import 'package:vibration/vibration.dart';
 
 class GlobalStatus with ChangeNotifier {
 //  KakaoContext.clientId = '39d6c43a0a346cca6ebc7b2dbb8e4353';
+
+  bool _isGameEnd = false;
+
+
+  bool get isGameEnd => _isGameEnd;
+
+  set isGameEnd(bool value) {
+    _isGameEnd = value;
+  }
+
+  BuildContext context;
+
+
 
   void printAllPersonData() {
     for (PersonData p in personDataList) {
@@ -391,6 +405,7 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void initLevel() {
+    _isGameEnd = false;
     _highlightTileMap = {
       HighlightTile.selected: [],
       HighlightTile.moveable: [],
@@ -464,18 +479,46 @@ class GlobalStatus with ChangeNotifier {
       _highlightTileMap[HighlightTile.moveable] = [];
 
       if (isGoal()) {
+
         print("goal!");
-        Vibration.vibrate(duration: 1000);
+        Future.delayed(const Duration(milliseconds: 350), () {
+          Vibration.vibrate(duration: 1000);
+          _isGameEnd = true;
+          notifyListeners();
+        });
+
+
+
+
+        // showGoalDialog(context);
+
+
+
+
+
+      }else{
+        Future.delayed(const Duration(milliseconds: 350), () {
+          selectTile(tile: destTile, selectType: SelectType.personSelect);
+        });
       }
 
-      Future.delayed(const Duration(milliseconds: 350), () {
-        selectTile(tile: destTile, selectType: SelectType.personSelect);
-      });
+
     }
   }
 
   bool isGoal() {
-    return Tiles.getTileType(tile: _goalTile, levelData: _levelData) == Tiles.player;
+    for(int i = 0 ; i < _levelData.mapHeight; i ++){
+      for(int j = 0; j < _levelData.mapWidth ; j++){
+        if(Tiles.getTileType(tile: TileData(x:j, y:i), levelData: levelData) == Tiles.player){
+          if(!(_goalTile.x == j &&  _goalTile.y == i)){
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+
+
   }
 
   bool isFive({TileData tile}) {
@@ -516,6 +559,7 @@ class GlobalStatus with ChangeNotifier {
     });
 
     if (fiveFlag) {
+      Vibration.vibrate(duration: 300);
       showCustomToast("5인 이상 집합 금지!", ToastType.normal);
     }
 
