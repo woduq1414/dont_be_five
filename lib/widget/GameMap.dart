@@ -14,6 +14,7 @@ import 'package:dont_be_five/page/HomePage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 import 'package:dont_be_five/common/color.dart';
@@ -45,7 +46,6 @@ class GameMap extends StatefulWidget {
 }
 
 class _GameMapState extends State<GameMap> {
-
   bool _isGoalDialogShowing = false;
 
   LevelData levelData;
@@ -81,15 +81,12 @@ class _GameMapState extends State<GameMap> {
       _cachedPersonBuilder = personBuilder(context: context);
     }
 
-    if(gs.isGameEnd && _isGoalDialogShowing == false){
+    if (gs.isGameEnd && _isGoalDialogShowing == false) {
       _isGoalDialogShowing = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showGoalDialog(context);
       });
-
     }
-
-
 
     return Container(
         color: Colors.white,
@@ -122,28 +119,66 @@ class _GameMapState extends State<GameMap> {
 Widget utilButtonContainerBuilder({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context);
   return Positioned(
-    right: 20,
+    // right: 20,
     top: 30,
     child: Container(
-        decoration:
-            BoxDecoration(color: Color.fromRGBO(200, 200, 200, 0.8), borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: GestureDetector(
-          onTap: () {
-            // gs.printAllPersonData();
-            // showCustomToast("sdjflkjsdklfjklsdf", ToastType.normal);
-
-
-            // YYDialogDemo(context);
-
-            Navigator.of(context).pop();
-            moveToLevel(level: gs.levelData.seq, context: context);
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-            decoration: BoxDecoration(
-                color: Color.fromRGBO(150, 150, 150, 0.5), borderRadius: BorderRadius.all(Radius.circular(10))),
-            child: Icon(Icons.replay),
-          ),
+        width: gs.deviceSize.width,
+        padding: EdgeInsets.symmetric(horizontal: 0),
+        decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+              margin: EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(
+                  color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+              child: RichText(
+                text: TextSpan(
+                  // text:
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(text: ' ', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(text: gs.moveCount.toString(), style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
+                    TextSpan(text: ' ', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(text: '이동', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(right: 10),
+              child: Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      // Navigator.of(context).pop();
+                      moveToLevel(level: gs.levelData.seq, context: context);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      decoration: BoxDecoration(
+                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Icon(Icons.replay),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      showPauseDialog(context);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      decoration: BoxDecoration(
+                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Icon(Icons.reorder),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
         )),
   );
 }
@@ -388,7 +423,6 @@ class MapPainter extends CustomPainter {
         path.addPolygon(points, true);
 
         myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
-
           // gs.movePerson(x:j, y:i, d : Direction(-1,0));
           if (gs.selectMode == SelectMode.normal) {
             gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
@@ -500,5 +534,3 @@ class HighlightTilePainter extends CustomPainter {
     return true;
   }
 }
-
-

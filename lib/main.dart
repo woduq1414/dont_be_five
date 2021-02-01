@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/page/GamePage.dart';
 import 'package:dont_be_five/page/HomePage.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
-
+import 'package:hive/hive.dart';
 //...
 
 void main() {
@@ -19,8 +20,15 @@ void main() {
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
+
+
+
   @override
   Widget build(BuildContext context) {
+
+
+
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<GlobalStatus>(create: (_) => GlobalStatus()),

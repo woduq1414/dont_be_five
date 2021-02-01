@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/LevelData.dart';
+import 'package:dont_be_five/data/LevelDataJson.dart';
 import 'package:dont_be_five/data/PersonData.dart';
+import 'package:dont_be_five/data/hive/SaveData.dart';
 import 'package:dont_be_five/data/SelectMode.dart';
 import 'package:dont_be_five/data/SelectType.dart';
 import 'package:dont_be_five/data/Tiles.dart';
@@ -12,6 +16,8 @@ import 'package:dont_be_five/widget/Person.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/widget/Tile.dart';
 import 'package:dont_be_five/widget/Toast.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,19 +29,175 @@ import 'package:vibration/vibration.dart';
 
 class GlobalStatus with ChangeNotifier {
 //  KakaoContext.clientId = '39d6c43a0a346cca6ebc7b2dbb8e4353';
+  Box<SaveData> box;
 
-  bool _isGameEnd = false;
+  void clearProcess() async {
+    Map<String, dynamic> levelStarInfo = getLevelStarInfo();
+
+    List<int> levelProcessList = getLevelProcessList();
+    int originLevelStatus = levelProcessList[levelData.seq - 1];
+
+    List<bool> havingStar = [];
+    havingStar.add(originLevelStatus % 2 == 1);
+    havingStar.add(originLevelStatus ~/ 2 % 2 == 1);
+    havingStar.add(originLevelStatus ~/ 4 % 2 == 1);
+
+    for (int i = 0; i < levelStarInfo.keys.length; i++) {
+      if (levelStarInfo[levelStarInfo.keys.toList()[i]] == true) {
+        havingStar[i] = true;
+      }
+    }
+
+    levelProcessList[levelData.seq - 1] =
+        (havingStar[0] ? 1 : 0) + (havingStar[1] ? 1 : 0) * 2 + (havingStar[2] ? 1 : 0) * 4;
+
+    levelProcessList[levelData.seq] = levelProcessList[levelData.seq] == -1 ? 0 : levelProcessList[levelData.seq];
+
+    SaveData saveData = box.get('saveData');
+    saveData.levelProcessList = levelProcessList;
+    saveData.save();
+
+  }
+
+  List<int> getLevelProcessList() {
+    SaveData saveData = box.get('saveData');
+    return saveData.levelProcessList;
+  }
+
+  void loadSaveData() async {
+    await Hive.initFlutter();
+    Hive.registerAdapter(SaveDataAdapter());
+
+    box = await Hive.openBox('saved');
+    // box.clear();
+
+    SaveData saveData = box.get('saveData');
+
+    if (saveData == null) {
+      print("null..");
+      await initSaveData();
+      saveData = box.get('saveData');
+    }
+    print("SDDDDDDD");
+    print(saveData);
+
+    // var savedDat = SaveData()
+    //   ..levelProcessList = List.generate(100, (index) {return 0;});
+    //
+    // await box.put('saved', person);
+  }
+
+  Future<void> initSaveData() async {
+    box = await Hive.openBox('saved');
+    var saveData = SaveData()
+      ..levelProcessList = List.generate(300, (index) {
+        return index == 0 ? 0 : -1;
+      });
+
+    await box.put('saveData', saveData);
+    print(box.get('saveData'));
+  }
+
+  Map<ItemData, dynamic> _usedItemCountMap;
+
+  Map<ItemData, dynamic> get usedItemCountMap => _usedItemCountMap;
+
+  set usedItemCountMap(Map<ItemData, dynamic> value) {
+    _usedItemCountMap = value;
+  }
+
+  Map<String, dynamic> getLevelStarInfo() {
+    Map<String, dynamic> result = {};
+    List<String> pStarCondition = levelData.pStarCondition;
+    for (String sc in pStarCondition) {
+      bool boo = true;
+
+      String str = "";
+      List<String> condList = sc.split("&").map((x) {
+        return x.trim();
+      }).toList();
+      for (String cond in condList) {
+        String stopWord = cond.split(" ")[0];
+        switch (stopWord) {
+          case "clear":
+            str += "클리어";
+            if (_isGameCleared) {
+            } else {}
+            break;
+          case "move":
+            str += "${cond.split(" ")[1]} 이동 안에 ";
+            if (_isGameCleared) {
+              boo = boo && _moveCount <= int.parse(cond.split(" ")[1]);
+            } else {}
+            break;
+          case "no":
+            String target = cond.split(" ")[1];
+            if (target == "item") {
+              str += "아이템 사용하지 않고 ";
+              if (_isGameCleared) {
+                boo = boo && _usedItemCountMap.values.fold(0, (p, c) => p + c) == 0;
+              } else {}
+            } else if (target == "vaccine") {
+              str += "백신 사용하지 않고 ";
+              if (_isGameCleared) {
+                boo = boo && _usedItemCountMap[ItemData.vaccine] == 0;
+              } else {}
+            } else if (target == "isolate") {
+              str += "자가격리 사용하지 않고 ";
+              if (_isGameCleared) {
+                boo = boo && _usedItemCountMap[ItemData.isolate] == 0;
+              } else {}
+            } else if (target == "release") {
+              str += "격리해제 사용하지 않고 ";
+              if (_isGameCleared) {
+                boo = boo && _usedItemCountMap[ItemData.release] == 0;
+              } else {}
+            }
+
+            break;
+        }
+      }
 
 
-  bool get isGameEnd => _isGameEnd;
+      result[str] = boo;
+    }
+
+
+    if (!_isGameCleared) {
+      List<int> levelProcessList = getLevelProcessList();
+      int originLevelStatus = levelProcessList[levelData.seq - 1];
+
+      List<bool> havingStar = [];
+      havingStar.add(originLevelStatus % 2 == 1);
+      havingStar.add(originLevelStatus ~/ 2 % 2 == 1);
+      havingStar.add(originLevelStatus ~/ 4 % 2 == 1);
+      print(havingStar);
+      print(originLevelStatus / 2);
+      for(int i = 0 ; i < result.keys.length ; i ++){
+        result[result.keys.toList()[i]] = havingStar[i];
+      }
+
+    }
+    return result;
+  }
+
+  int _moveCount = 0;
+
+  int get moveCount => _moveCount;
+
+  set moveCount(int value) {
+    _moveCount = value;
+  }
+
+  bool _isGameCleared = false;
+
+  bool get isGameEnd => _isGameCleared;
 
   set isGameEnd(bool value) {
-    _isGameEnd = value;
+    _isGameCleared = value;
   }
 
   BuildContext context;
-
-
 
   void printAllPersonData() {
     for (PersonData p in personDataList) {
@@ -97,21 +259,20 @@ class GlobalStatus with ChangeNotifier {
         }
       }
 
-      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+      if (_highlightTileMap[HighlightTile.selectable].length == 0) {
         showCustomToast("자가격리 대상이 없습니다.", ToastType.small);
         _highlightTileMap[HighlightTile.selectable] = [];
         _selectedItem = null;
-      }else{
+      } else {
         showCustomToast("자가격리 대상을 선택해주세요.", ToastType.small);
       }
-
     } else if (item == ItemData.release) {
       _highlightTileMap[HighlightTile.selectable] = _isolatedTileList;
-      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+      if (_highlightTileMap[HighlightTile.selectable].length == 0) {
         showCustomToast("자가격리 해제 대상이 없습니다.", ToastType.small);
         _highlightTileMap[HighlightTile.selectable] = [];
         _selectedItem = null;
-      }else{
+      } else {
         showCustomToast("자가격리 해제 대상을 선택해주세요.", ToastType.small);
       }
     } else if (item == ItemData.vaccine) {
@@ -123,16 +284,14 @@ class GlobalStatus with ChangeNotifier {
           }
         }
       }
-      if(_highlightTileMap[HighlightTile.selectable].length == 0){
+      if (_highlightTileMap[HighlightTile.selectable].length == 0) {
         showCustomToast("백신 투약 대상이 없습니다.", ToastType.small);
         _highlightTileMap[HighlightTile.selectable] = [];
         _selectedItem = null;
-      }else{
+      } else {
         showCustomToast("백신 투약 대상을 선택해주세요.", ToastType.small);
       }
     } else {}
-
-
 
     notifyListeners();
   }
@@ -276,6 +435,8 @@ class GlobalStatus with ChangeNotifier {
           _highlightTileMap[HighlightTile.isolated].add(tile);
           _levelData.items[selectedItem.name] -= 1;
 
+          _usedItemCountMap[ItemData.isolate] += 1;
+
           showCustomToast("자가격리!", ToastType.normal);
         } else if (selectedItem == ItemData.release) {
           _isolatedTileList.removeWhere((element) => element.x == tile.x && element.y == tile.y);
@@ -289,6 +450,7 @@ class GlobalStatus with ChangeNotifier {
             });
           } else {
             _levelData.items[selectedItem.name] -= 1;
+            _usedItemCountMap[ItemData.release] += 1;
             showCustomToast("자가격리 해제!", ToastType.normal);
           }
         } else if (selectedItem == ItemData.vaccine) {
@@ -297,6 +459,7 @@ class GlobalStatus with ChangeNotifier {
 
           _levelData.map[tile.y][tile.x] -= 1;
           _levelData.items[selectedItem.name] -= 1;
+          _usedItemCountMap[ItemData.vaccine] += 1;
           showCustomToast("백신 투약!", ToastType.normal);
         }
       } else {
@@ -378,8 +541,12 @@ class GlobalStatus with ChangeNotifier {
   }
 
   init() async {
-    Map<String, dynamic> data = await parseJsonFromAssets('assets/json/levelData.json');
-    levelDataList = data["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
+    // Map<String, dynamic> data = await parseJsonFromAssets('assets/json/levelData.json');
+    // levelDataList = data["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
+
+    levelDataList = map_json["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
+
+    await loadSaveData();
 
     notifyListeners();
   }
@@ -405,7 +572,10 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void initLevel() {
-    _isGameEnd = false;
+    _moveCount = 0;
+    _isGameCleared = false;
+    _usedItemCountMap = {ItemData.vaccine: 0, ItemData.release: 0, ItemData.isolate: 0};
+
     _highlightTileMap = {
       HighlightTile.selected: [],
       HighlightTile.moveable: [],
@@ -474,51 +644,44 @@ class GlobalStatus with ChangeNotifier {
         notifyListeners();
       });
     } else {
+      _moveCount += 1;
+
       _selectedTile = null;
       _highlightTileMap[HighlightTile.selected] = [];
       _highlightTileMap[HighlightTile.moveable] = [];
 
       if (isGoal()) {
-
         print("goal!");
         Future.delayed(const Duration(milliseconds: 350), () {
           Vibration.vibrate(duration: 1000);
-          _isGameEnd = true;
+          _isGameCleared = true;
+
+          clearProcess();
+
           notifyListeners();
         });
 
-
-
-
         // showGoalDialog(context);
 
-
-
-
-
-      }else{
+      } else {
         Future.delayed(const Duration(milliseconds: 350), () {
           selectTile(tile: destTile, selectType: SelectType.personSelect);
         });
       }
-
-
     }
   }
 
   bool isGoal() {
-    for(int i = 0 ; i < _levelData.mapHeight; i ++){
-      for(int j = 0; j < _levelData.mapWidth ; j++){
-        if(Tiles.getTileType(tile: TileData(x:j, y:i), levelData: levelData) == Tiles.player){
-          if(!(_goalTile.x == j &&  _goalTile.y == i)){
+    for (int i = 0; i < _levelData.mapHeight; i++) {
+      for (int j = 0; j < _levelData.mapWidth; j++) {
+        if (Tiles.getTileType(tile: TileData(x: j, y: i), levelData: levelData) == Tiles.player) {
+          if (!(_goalTile.x == j && _goalTile.y == i)) {
             return false;
           }
         }
       }
     }
     return true;
-
-
   }
 
   bool isFive({TileData tile}) {
@@ -564,6 +727,12 @@ class GlobalStatus with ChangeNotifier {
     }
 
     return fiveFlag;
+  }
+
+  bool get isGameCleared => _isGameCleared;
+
+  set isGameCleared(bool value) {
+    _isGameCleared = value;
   }
 }
 

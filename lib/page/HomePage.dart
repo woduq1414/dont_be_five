@@ -28,8 +28,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
 
-    AdManager.init();
-    AdManager.showBanner();
+    // AdManager.init();
+    // AdManager.showBanner();
     // TODO: implement initState
     super.initState();
   }
@@ -90,6 +90,8 @@ void moveToLevel({int level, BuildContext context}) async {
   GlobalStatus gs = context.read<GlobalStatus>();
   // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   List<LevelData> levelDataList = gs.levelDataList;
+  print(levelDataList);
+
   LevelData _currentLevelData;
   gs.initLevel();
 
@@ -115,7 +117,7 @@ void moveToLevel({int level, BuildContext context}) async {
   }
 
 
-  Navigator.push(
+  Navigator.pushReplacement(
     context,
     FadeRoute(page: GamePage(level: level,)),
   );

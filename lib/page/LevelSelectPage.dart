@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
@@ -25,7 +27,12 @@ class LevelSelectPage extends StatefulWidget {
 }
 
 class _LevelSelectPageState extends State<LevelSelectPage> {
+  int _page = 0;
+  CarouselController buttonCarouselController = CarouselController();
   int _chapter;
+  List<int> _levelProcessList = List.generate(300, (index) {
+    return -1;
+  });
 
   List<bool> _isClearedList = List.generate(30, (index) {
     return false;
@@ -41,6 +48,8 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
   @override
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
+
+    _levelProcessList = gs.getLevelProcessList();
 
     return SafeArea(
       child: Container(
@@ -62,8 +71,8 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                   Material(
                       color: Colors.transparent,
                       child: Text(
-                        "LEVEL SELECT(작동 안함)",
-                        style: TextStyle(fontSize: gs.s1()),
+                        "LEVEL SELECT",
+                        style: TextStyle(fontSize: gs.s1(), color: Colors.white),
                         textAlign: TextAlign.center,
                       )),
                   SizedBox(
@@ -75,25 +84,54 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                       SizedBox(
                         width: 5,
                       ),
-                      Container(
-                          margin: EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
-                          child: Icon(
-                            Icons.chevron_left,
-                            size: gs.s1(),
-                          )),
+                      GestureDetector(
+                        onTap: () {
+                          buttonCarouselController.previousPage(
+                              duration: Duration(milliseconds: 200), curve: Curves.easeOut);
+                        },
+                        child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 3),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+                            child: Icon(
+                              Icons.chevron_left,
+                              size: gs.s1(),
+                            )),
+                      ),
                       // SizedBox(width: gs.s4(),),
-                      Expanded(child: levelContainerBuilder(context: context)),
+                      Expanded(
+                          child: CarouselSlider.builder(
+                        itemCount: 15,
+                        carouselController: buttonCarouselController,
+                        itemBuilder: (BuildContext context, int itemIndex, int _) =>
+                            levelContainerBuilder(context: context, page: itemIndex),
+                        options: CarouselOptions(
+                          height: 350,
+                          autoPlay: false,
+                          reverse: false,
+                          enableInfiniteScroll: false,
+                          enlargeCenterPage: true,
+                          viewportFraction: 0.9,
+                          aspectRatio: 1,
+                          // height: ,
+                          initialPage: 0,
+                        ),
+                      )),
+
                       // SizedBox(width: gs.s4(),),
-                      Container(
-                          margin: EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
-                          child: Icon(
-                            Icons.chevron_right,
-                            size: gs.s1(),
-                          )),
+                      GestureDetector(
+                        onTap: () {
+                          buttonCarouselController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.easeOut);
+                        },
+                        child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 3),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+                            child: Icon(
+                              Icons.chevron_right,
+                              size: gs.s1(),
+                            )),
+                      ),
 
                       SizedBox(
                         width: 5,
@@ -104,7 +142,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                     height: 15,
                   ),
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Navigator.push(
                         context,
                         FadeRoute(page: HomePage()),
@@ -184,28 +222,53 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     );
   }
 
-  Widget levelContainerBuilder({BuildContext context}) {
+  Widget levelContainerBuilder({BuildContext context, int page}) {
+    int pageSize = 12;
     return Container(
+      height: 350,
       child: GridView.count(
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
         crossAxisCount: 3,
         childAspectRatio: 1,
-        children: List.generate(12, (index) {
-          return levelBuilder(context: context, level: index + 1, isCleared: _isClearedList[index]);
+        children: List.generate(pageSize, (index) {
+          return levelBuilder(
+              context: context, level: pageSize * page + index + 1, levelStatus: _levelProcessList[pageSize * page + index]);
         }),
       ),
     );
   }
 
-  Widget levelBuilder({int level, bool isCleared, BuildContext context}) {
+  Widget levelBuilder({int level, int levelStatus, BuildContext context}) {
     GlobalStatus gs = context.watch<GlobalStatus>();
-    return Container(
+    List<bool> havingStar = [];
+    havingStar.add(levelStatus % 2 == 1);
+    havingStar.add(levelStatus ~/ 2 % 2 == 1);
+    havingStar.add(levelStatus ~/ 4 % 2 == 1);
+
+    return GestureDetector(
+      onTap: levelStatus != -1
+          ? () {
+              moveToLevel(level: level, context: context);
+            }
+          : null,
       child: Container(
           margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           padding: EdgeInsets.symmetric(horizontal: 0),
-          decoration:
-              BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+          decoration: levelStatus != -1
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  color: Colors.white.withOpacity(1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: levelStatus == 7 ? Colors.yellowAccent.withOpacity(0.5) : Colors.white12.withOpacity(0.5),
+                      spreadRadius:levelStatus == 7 ? 3 : 2,
+                      blurRadius: 2,
+                      offset: Offset(0, 2), // changes position of shadow
+                    ),
+                  ],
+                )
+              : BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.grey.withOpacity(0.5)),
           child: Center(
               child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -215,16 +278,19 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                   color: Colors.transparent,
                   child: Text(
                     level.toString(),
-                    style: TextStyle(fontSize: 25),
+                    style: TextStyle(fontSize: 25, color: levelStatus != -1 ? Colors.black : Colors.black.withOpacity(0.5)),
                   )),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3())),
-                  Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3())),
-                  Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3()))
-                ],
-              )
+              levelStatus != -1
+                  ? Container(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: havingStar.map((e) {
+                          return e == true
+                              ? Flexible(flex: 2, child: Icon(Icons.star, color: primaryYellow, size: gs.s3()))
+                              : Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3()));
+                        }).toList()),
+                  )
+                  : Container(),
             ],
           ))),
     );
