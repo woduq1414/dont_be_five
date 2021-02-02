@@ -16,7 +16,7 @@ class LevelData {
       mapWidth: json['mapWidth'] as int,
       mapHeight: json['mapHeight'] as int,
       map: json['map'] as List<dynamic>,
-      items: json["items"] as Map<String, dynamic>,
+      items: json.containsKey("items") ? json["items"] : {},
       pStarCondition: List<String>.from(json['pStarCondition']) ,
     );
   }

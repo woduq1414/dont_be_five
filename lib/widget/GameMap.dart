@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/common/paint.dart';
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
@@ -10,7 +11,7 @@ import 'package:dont_be_five/data/SelectType.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/data/ToastType.dart';
-import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +33,11 @@ import 'Item.dart';
 import 'Person.dart';
 import 'Toast.dart';
 
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
+
+
+
 double interDivision({double start, double end, var m, var n}) {
   return (start * n + end * m) / (m + n);
 }
@@ -47,6 +53,7 @@ class GameMap extends StatefulWidget {
 
 class _GameMapState extends State<GameMap> {
   bool _isGoalDialogShowing = false;
+  AudioCache audioCache = AudioCache();
 
   LevelData levelData;
   double deviceWidth;
@@ -71,6 +78,7 @@ class _GameMapState extends State<GameMap> {
   @override
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
+    gs.audioCache = audioCache;
 
     setState(() {
       levelData = gs.levelData;
@@ -88,31 +96,42 @@ class _GameMapState extends State<GameMap> {
       });
     }
 
-    return Container(
-        color: Colors.white,
-        child: Stack(
-          children: <Widget>[
-            SizedBox.expand(
-              child: CustomPaint(
-                painter: BackgroundPainter(context: context),
-              ),
-            ),
-            SizedBox.expand(
-              child: CanvasTouchDetector(
-                builder: (context) => CustomPaint(
-                  painter: MapPainter(levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
+    return WillPopScope(
+      onWillPop: () async{
+
+        if(!gs.isGameEnd){
+          showPauseDialog(context);
+        }
+
+
+        return true;
+      },
+      child: Container(
+          color: Colors.white,
+          child: Stack(
+            children: <Widget>[
+              SizedBox.expand(
+                child: CustomPaint(
+                  painter: BackgroundPainter(context: context),
                 ),
               ),
-            ),
-            CustomPaint(
-              painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
-            ),
-            Goal(),
-            ..._cachedPersonBuilder,
-            utilButtonContainerBuilder(context: context),
-            itemContainerBuilder(context: context)
-          ],
-        ));
+              SizedBox.expand(
+                child: CanvasTouchDetector(
+                  builder: (context) => CustomPaint(
+                    painter: MapPainter(levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
+                  ),
+                ),
+              ),
+              CustomPaint(
+                painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
+              ),
+              Goal(),
+              ..._cachedPersonBuilder,
+              utilButtonContainerBuilder(context: context),
+              itemContainerBuilder(context: context)
+            ],
+          )),
+    );
   }
 }
 
@@ -120,7 +139,7 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context);
   return Positioned(
     // right: 20,
-    top: 30,
+    top: 10 + MediaQuery.of(context).padding.top,
     child: Container(
         width: gs.deviceSize.width,
         padding: EdgeInsets.symmetric(horizontal: 0),
@@ -129,7 +148,7 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
               margin: EdgeInsets.only(left: 10),
               decoration: BoxDecoration(
                   color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
@@ -153,11 +172,11 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
                   GestureDetector(
                     onTap: () {
                       // Navigator.of(context).pop();
-                      moveToLevel(level: gs.levelData.seq, context: context);
+                      moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
                     },
                     child: Container(
                       margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                       decoration: BoxDecoration(
                           color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
                       child: Icon(Icons.replay),
@@ -169,7 +188,7 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
                     },
                     child: Container(
                       margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                       decoration: BoxDecoration(
                           color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
                       child: Icon(Icons.reorder),
@@ -185,6 +204,12 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
 
 Widget itemContainerBuilder({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context);
+
+  if(gs.levelData.items.length == 0){
+    return Container();
+  }
+
+
   return Positioned.fill(
     bottom: 80,
     child: Align(
@@ -227,6 +252,8 @@ Widget itemBuilder({BuildContext context, String itemName}) {
     child: GestureDetector(
       onTap: () {
         gs.selectItem(item);
+        print("SD");
+
       },
       child: Container(
           decoration:
@@ -263,6 +290,7 @@ class MapPainter extends CustomPainter {
   LevelData levelData;
   List<dynamic> tileCornerOffsetList;
   final BuildContext context;
+  bool isSample;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -423,6 +451,11 @@ class MapPainter extends CustomPainter {
         path.addPolygon(points, true);
 
         myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
+
+          if(isSample){
+            return;
+          }
+
           // gs.movePerson(x:j, y:i, d : Direction(-1,0));
           if (gs.selectMode == SelectMode.normal) {
             gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
@@ -445,12 +478,17 @@ class MapPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 
-  MapPainter({this.levelData, this.tileCornerOffsetList, this.context});
+  MapPainter({this.levelData, this.tileCornerOffsetList, this.context, this.isSample = false});
 }
 
 List<Widget> personBuilder({BuildContext context}) {
   List<PersonData> personDataList = context.select((GlobalStatus gs) => gs.personDataList);
   // = gs.personDataList;
+
+  if(personDataList == null){
+    return [Container()];
+  }
+
 
   return personDataList.map((x) {
     return Person(

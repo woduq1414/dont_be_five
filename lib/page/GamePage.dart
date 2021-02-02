@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
+import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,9 @@ import 'package:provider/provider.dart';
 
 class GamePage extends StatefulWidget {
   int level;
+  bool isSkipTutorial;
 
-  GamePage({this.level});
+  GamePage({this.level, this.isSkipTutorial});
 
   @override
   _GamePageState createState() => _GamePageState(level);
@@ -20,19 +22,60 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   int level;
   LevelData _currentLevelData;
+  bool _isSkipTutorial;
+  bool _isShowedTutorial = false;
+
 
   _GamePageState(this.level);
 
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {});
+
+    setState(() {
+      _isSkipTutorial = widget.isSkipTutorial;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+
+
+      if(!_isSkipTutorial){
+        if(!_isShowedTutorial){
+          setState(() {
+            _isShowedTutorial = true;
+          });
+
+          switch(level){
+            case 1:
+              showTutorialDialog(context: context, page: 1);
+              break;
+            case 2:
+              showTutorialDialog(context: context, page: 2);
+              break;
+            case 4:
+              showTutorialDialog(context: context, page: 3);
+              break;
+          }
+
+
+
+        }
+
+      }
+
+
+    });
+
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+
+
+
+
+
     setState(() {
       if (levelData == null) {
         // List<LevelData> levelDataList =context.select((GlobalStatus gs) => gs.levelDataList);

@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dont_be_five/common/Font.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/page/GamePage.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+
+import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:flutter/material.dart';
 
@@ -11,9 +14,15 @@ import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
 import 'package:hive/hive.dart';
-//...
+
+
+
+int beepSoundId;
+
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(MyApp());
 }
 
@@ -54,6 +63,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Flutter Demo',
             theme: ThemeData(
+              fontFamily: Font.light,
               // This is the theme of your application.
               //
               // Try running your application with "flutter run". You'll see the

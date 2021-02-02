@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:flutter/cupertino.dart';
@@ -72,6 +73,7 @@ class _ItemState extends State<Item> with TickerProviderStateMixin {
           }else{
             gs.selectItem(item);
           }
+
 
 
         },

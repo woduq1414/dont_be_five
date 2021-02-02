@@ -24,7 +24,7 @@ class HighlightTile {
     if (highlightType == HighlightTile.selected) {
       paint = Paint();
       paint.style = PaintingStyle.fill;
-      paint.color = Color.fromRGBO(230, 230, 230, 0.5);
+      paint.color = Color.fromRGBO(220, 220, 220, 0.5);
     } else if (highlightType == HighlightTile.moveable) {
       paint = Paint()
         ..shader = ui.Gradient.radial(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
 import 'package:dont_be_five/data/ItemData.dart';
@@ -27,11 +28,37 @@ import 'dart:convert';
 
 import 'package:vibration/vibration.dart';
 
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 class GlobalStatus with ChangeNotifier {
 //  KakaoContext.clientId = '39d6c43a0a346cca6ebc7b2dbb8e4353';
+
+  int getLastUnlockedLevel(){
+    SaveData saveData = box.get('saveData');
+    for(int i = 0 ; i < saveData.levelProcessList.length; i ++){
+      if(saveData.levelProcessList[i] == -1){
+        return i;
+      }
+    }
+    return saveData.levelProcessList.length;
+  }
+
+
+
   Box<SaveData> box;
 
+  AudioCache _audioCache;
+
+
+  AudioCache get audioCache => _audioCache;
+
+  set audioCache(AudioCache value) {
+    _audioCache = value;
+  }
+
   void clearProcess() async {
+    audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY);
     Map<String, dynamic> levelStarInfo = getLevelStarInfo();
 
     List<int> levelProcessList = getLevelProcessList();
@@ -437,6 +464,8 @@ class GlobalStatus with ChangeNotifier {
 
           _usedItemCountMap[ItemData.isolate] += 1;
 
+
+          audioCache.play(SoundPath.isolate, mode: PlayerMode.LOW_LATENCY);
           showCustomToast("자가격리!", ToastType.normal);
         } else if (selectedItem == ItemData.release) {
           _isolatedTileList.removeWhere((element) => element.x == tile.x && element.y == tile.y);
@@ -451,6 +480,8 @@ class GlobalStatus with ChangeNotifier {
           } else {
             _levelData.items[selectedItem.name] -= 1;
             _usedItemCountMap[ItemData.release] += 1;
+
+            audioCache.play(SoundPath.release, mode: PlayerMode.LOW_LATENCY);
             showCustomToast("자가격리 해제!", ToastType.normal);
           }
         } else if (selectedItem == ItemData.vaccine) {
@@ -460,6 +491,8 @@ class GlobalStatus with ChangeNotifier {
           _levelData.map[tile.y][tile.x] -= 1;
           _levelData.items[selectedItem.name] -= 1;
           _usedItemCountMap[ItemData.vaccine] += 1;
+
+          audioCache.play(SoundPath.vaccine, mode: PlayerMode.LOW_LATENCY);
           showCustomToast("백신 투약!", ToastType.normal);
         }
       } else {
@@ -626,6 +659,8 @@ class GlobalStatus with ChangeNotifier {
       }
     }
 
+    audioCache.play(SoundPath.step, mode: PlayerMode.LOW_LATENCY);
+
     // _personList[0].x = 1;
     // _personList[0].y = 0;
 
@@ -722,6 +757,7 @@ class GlobalStatus with ChangeNotifier {
     });
 
     if (fiveFlag) {
+      // audioCache.play(SoundPath.beep, mode: PlayerMode.LOW_LATENCY);
       Vibration.vibrate(duration: 300);
       showCustomToast("5인 이상 집합 금지!", ToastType.normal);
     }

@@ -1,21 +1,28 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:dont_be_five/common/firebase.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dont_be_five/common/color.dart';
+import 'package:dont_be_five/common/func.dart';
+import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
+import 'package:dont_be_five/page/HomePage.dart';
 import 'package:dont_be_five/page/LevelSelectPage.dart';
+import 'package:dont_be_five/painter/BackgroundPainter.dart';
+import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:dont_be_five/widget/Person.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
+import 'package:touchable/touchable.dart';
 
 import 'GamePage.dart';
 
@@ -24,190 +31,194 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
 
-    // AdManager.init();
-    // AdManager.showBanner();
+  LevelData _levelData = LevelData.fromJson({
+    "seq": 99,
+    "mapWidth": 5,
+    "mapHeight": 5,
+    "map": [
+      [-1, -1, -1, -1, -1],
+      [-1, -1, 1, -1, -1],
+      [-1, 1, 101, 1, -1],
+      [-1, -1, 1, -1, -1],
+      [-1, -1, -1, -1, -1]
+    ],
+    "pStarCondition": ["clear", "move 15 & clear", "no isolate & clear"]
+  });
+
+  List<PersonData> _personDataList;
+  List<dynamic> _tileCornerOffsetList;
+
+  AnimationController _animationController;
+  Animation _animation;
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _animationController.dispose();
+
+    super.dispose();
+  }
+
+
+  void initState() {
     // TODO: implement initState
+
+    _animationController = AnimationController(vsync: this, duration: Duration(seconds: 3));
+    _animationController.repeat(reverse: true);
+    _animation = Tween(begin: 2.0, end: 8.0,).animate(new CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInCirc
+    ))
+      ..addListener(() {
+        setState(() {});
+      });
+
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+        _tileCornerOffsetList = calcTileCornerOffsetList(levelData: _levelData, context: context);
+        gs.tileCornerOffsetList = _tileCornerOffsetList;
+
+        _personDataList = makePersonDataList(levelData: _levelData, context: context);
+
+
+        // _levelData =
+
+        gs.levelData = _levelData;
+        gs.personDataList = _personDataList;
+        gs.deviceSize = MediaQuery.of(context).size;
+        print(_levelData);
+
+      });
+    });
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
-    GlobalStatus gs = Provider.of<GlobalStatus>(context);
+    GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
     gs.deviceSize = MediaQuery.of(context).size;
-    return Scaffold(
-        body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+
+
+
+
+
+    return WillPopScope(
+      onWillPop: () async {
+        return true;
+      },
+      child: SafeArea(
+        child: Container(
+            color: Colors.white,
+            child: Stack(
               children: <Widget>[
-                RaisedButton(
-                  child: Text("sample map 1"),
-                  onPressed: () async {
-                    moveToLevel(level: 1, context: context);
-                  },
+                SizedBox.expand(
+                  child: CustomPaint(
+                    painter: BackgroundPainter(context: context),
+                  ),
                 ),
-                RaisedButton(
-                  child: Text("sample map 2"),
-                  onPressed: () async {
-                    moveToLevel(level: 2, context: context);
-                  },
-                ),
-                RaisedButton(
-                  child: Text("sample map 3"),
-                  onPressed: () async {
-                    moveToLevel(level: 3, context: context);
-                  },
-                ),
-                RaisedButton(
-                  child: Text("level select"),
-                  onPressed: () async {
 
-                    Navigator.push(
-                      context,
-                      FadeRoute(page: LevelSelectPage()),
-                    );
-                  },
-                )
+
+
+
+                _tileCornerOffsetList != null?
+                SizedBox.expand(
+                  child: CanvasTouchDetector(
+                    builder: (context) => CustomPaint(
+                      painter:
+                          MapPainter(levelData: _levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
+                    ),
+                  ),
+                ) : Container(),
+                ... _tileCornerOffsetList != null? personBuilder(context: context) : [Container()],
+                Container(
+                  margin: EdgeInsets.only(left: 15, right: 15),
+                  child: Column(
+                    children: <Widget>[
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.03 + _animation.value,
+                      ),
+                      Image.asset(ImagePath.titleLogo),
+
+                    ],
+                  ),
+                ),
+
+                Positioned.fill(
+                  bottom: 130 ,
+                  left: 15,
+                  right: 15,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: CustomButton(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.play_arrow, size: gs.s2()),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Material(
+                            color: Colors.transparent,
+                            child: Text("시작하기",
+                                style: TextStyle(
+                                  fontSize: gs.s4(),
+                                )),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.white70.withOpacity(0.9),
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          FadeRoute(page: LevelSelectPage()),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                buildRightMenuContainer(context: context),
               ],
-            )));
+            )),
+      ),
+    );
   }
-
-
-
 }
 
-String getRandString(int len) {
-  var random = Random.secure();
-  var values = List<int>.generate(len, (i) =>  random.nextInt(255));
-  return base64UrlEncode(values);
-}
+Widget buildRightMenuContainer({BuildContext context}){
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  return Positioned(
+    right: 0,
+    bottom: MediaQuery.of(context).size.height * 0.4,
+    child: Container(
+      padding: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(18), bottomLeft: Radius.circular(18)),
+        color: Colors.black.withOpacity(0.5),
 
-void moveToLevel({int level, BuildContext context}) async {
-  GlobalStatus gs = context.read<GlobalStatus>();
-  // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-  List<LevelData> levelDataList = gs.levelDataList;
-  print(levelDataList);
-
-  LevelData _currentLevelData;
-  gs.initLevel();
-
-  gs.context = context;
-
-  _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
-
-
-  gs.deviceSize = MediaQuery.of(context).size;
-
-  gs.levelData = _currentLevelData.clone();
-  gs.tileCornerOffsetList = calcTileCornerOffsetList(levelData: _currentLevelData, context: context);
-  gs.personDataList = makePersonDataList(levelData: _currentLevelData, context: context);
-
-
-  for(int i = 0 ; i < _currentLevelData.mapHeight; i ++){
-    for(int j = 0; j < _currentLevelData.mapWidth ; j++){
-      if(Tiles.getTileType(tile: TileData(x:j, y:i), levelData: _currentLevelData) == Tiles.goal){
-        gs.goalTile = TileData(x:j, y:i);
-        break;
-      }
-    }
-  }
-
-
-  Navigator.pushReplacement(
-    context,
-    FadeRoute(page: GamePage(level: level,)),
+      ),
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 5,),
+          GestureDetector(
+            onTap: (){},
+            child: Container(
+              child: Icon(Icons.military_tech, size: gs.s1(), color: Colors.white,),
+            ),
+          ),
+          SizedBox(height: 5,),
+          GestureDetector(
+            onTap: (){},
+            child: Container(
+              child: Icon(Icons.settings, size: gs.s2(), color: Colors.white,),
+            ),
+          ),
+          SizedBox(height: 5,),
+        ],
+      )
+    ),
   );
-}
-
-
-
-List<dynamic> calcTileCornerOffsetList({LevelData levelData, BuildContext context}) {
-
-
-
-  double deviceWidth;
-  double deviceHeight;
-
-  Offset leftTopCorner;
-  Offset rightTopCorner;
-  Offset leftBottomCorner;
-  Offset rightBottomCorner;
-
-  List<dynamic> _tileCornerOffsetList = [];
-
-  deviceWidth = MediaQuery
-      .of(context)
-      .size
-      .width;
-  deviceHeight = MediaQuery
-      .of(context)
-      .size
-      .height;
-
-
-  // setState(() {
-  //   _tileCornerOffsetList[0] = deviceWidth;
-  // });
-  double fullWidth = deviceWidth * 0.9;
-
-  double pTheta = 75 * (pi / 180);
-  // double pW = 300;
-  // double pH = 250;
-  double pRatio = 5 / 6; // 평행사면형 높이 / 밑변
-
-  double pH = fullWidth / (1 / tan(pTheta) + 1 / pRatio);
-  double pW = pH / pRatio;
-
-
-  leftTopCorner = Offset(fullWidth - pW, deviceHeight / 2 - pH / 2);
-
-  rightTopCorner = Offset(fullWidth, deviceHeight / 2 - pH / 2);
-  leftBottomCorner = Offset(0, deviceHeight / 2 + pH / 2);
-  rightBottomCorner = Offset(pW, deviceHeight / 2 + pH / 2);
-
-  for (int i = 0; i < levelData.mapHeight + 1; i++) {
-    _tileCornerOffsetList.add([]);
-    for (int j = 0; j < levelData.mapWidth + 1; j++) {
-      _tileCornerOffsetList[i].add(Offset(
-          interDivision(start: leftTopCorner.dx, end: rightTopCorner.dx, m: j, n: levelData.mapWidth - j) -
-              interDivision(start: leftBottomCorner.dx, end: leftTopCorner.dx, m: i, n: levelData.mapHeight - i) +
-              (deviceWidth - fullWidth) / 2,
-          interDivision(start: leftTopCorner.dy, end: leftBottomCorner.dy, m: i, n: levelData.mapHeight - i)));
-    }
-    ;
-  }
-
-  return _tileCornerOffsetList;
-}
-
-List<dynamic> makePersonDataList({LevelData levelData, BuildContext context}) {
-  List<PersonData> personDataList = [];
-
-
-  for (int i = 0; i < levelData.mapHeight; i++) {
-    for (int j = 0; j < levelData.mapWidth; j++) {
-      if (1 <= levelData.map[i][j] && levelData.map[i][j] <= 4) {
-        for (int k = 0; k < levelData.map[i][j]; k++) {
-          // personList.add(Person(x: j, y:i, idx:k, count: levelData.map[i][j],));
-          personDataList.add(PersonData.fromJson({
-            "x" : j, "y" : i, "idx" : k, "count" : levelData.map[i][j], "hash" :  getRandString(15), "isPlayer" : false,
-          }));
-        }
-      }
-      if (101 <= levelData.map[i][j] && levelData.map[i][j] <= 104) {
-        for (int k = 0; k < levelData.map[i][j] - 100; k++) {
-          // personList.add(Person(x: j, y:i, idx:k, count: levelData.map[i][j],));
-          personDataList.add(PersonData.fromJson({
-            "x" : j, "y" : i, "idx" : k, "count" : levelData.map[i][j] - 100, "hash" :  getRandString(15), "isPlayer" : true,
-          }));
-        }
-      }
-    }
-  }
-
-  return personDataList;
 }
