@@ -10,11 +10,15 @@ import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
 import 'package:hive/hive.dart';
 
+import 'package:games_services/games_services.dart';
+
+import 'common/firebase.dart';
 
 
 int beepSoundId;
@@ -35,6 +39,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    GamesServices.signIn();
 
 
 

@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dont_be_five/common/color.dart';
+import 'package:dont_be_five/common/firebase.dart';
 import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
@@ -14,6 +16,7 @@ import 'package:dont_be_five/page/LevelSelectPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
+import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:dont_be_five/widget/Person.dart';
@@ -21,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:games_services/games_services.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
 
@@ -53,6 +57,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
   AnimationController _animationController;
   Animation _animation;
 
+
+  DateTime currentBackPressTime;
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -61,9 +68,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
     super.dispose();
   }
 
+  test() async{
+    // SigninResult result =  await PlayGames.signIn();
+  }
+
 
   void initState() {
     // TODO: implement initState
+
+
+
+    AdManager.init();
+    AdManager.showBanner();
+
+
+
+    // GamesServices.signIn();
+    // test();
 
     _animationController = AnimationController(vsync: this, duration: Duration(seconds: 3));
     _animationController.repeat(reverse: true);
@@ -108,7 +129,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
 
     return WillPopScope(
       onWillPop: () async {
-        return true;
+        DateTime now = DateTime.now();
+        if (currentBackPressTime == null ||
+            now.difference(currentBackPressTime) > Duration(seconds: 1)) {
+          currentBackPressTime = now;
+          return Future.value(false);
+        }
+
+        exit(1);
+
+        return Future.value(true);
       },
       child: SafeArea(
         child: Container(
@@ -172,6 +202,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
                       ),
                       backgroundColor: Colors.white70.withOpacity(0.9),
                       onTap: () {
+
+                        // moveToLevel(level: 23 , context: context);
+                        // return;
+
                         Navigator.pushReplacement(
                           context,
                           FadeRoute(page: LevelSelectPage()),
@@ -204,14 +238,24 @@ Widget buildRightMenuContainer({BuildContext context}){
         children: <Widget>[
           SizedBox(height: 5,),
           GestureDetector(
-            onTap: (){},
+            onTap: () async{
+              // SigninResult result =  await PlayGames.signIn();
+
+              // print(result);
+              await GamesServices.showAchievements();
+
+            },
             child: Container(
               child: Icon(Icons.military_tech, size: gs.s1(), color: Colors.white,),
             ),
           ),
           SizedBox(height: 5,),
           GestureDetector(
-            onTap: (){},
+            onTap: (){
+              showSettingDialog(context :context);
+
+
+            },
             child: Container(
               child: Icon(Icons.settings, size: gs.s2(), color: Colors.white,),
             ),

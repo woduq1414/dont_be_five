@@ -24,12 +24,28 @@ import 'package:provider/provider.dart';
 import 'GamePage.dart';
 
 class LevelSelectPage extends StatefulWidget {
+
+  int page = 0;
+
+
+  LevelSelectPage({this.page});
+
   @override
-  _LevelSelectPageState createState() => _LevelSelectPageState();
+  _LevelSelectPageState createState() => _LevelSelectPageState(page);
 }
 
 class _LevelSelectPageState extends State<LevelSelectPage> {
-  int _page = 0;
+  int _page;
+  _LevelSelectPageState(int page){
+
+    if(page == null){
+      page = 0;
+    }
+    _page = page;
+  }
+
+
+
   CarouselController buttonCarouselController = CarouselController();
   int _chapter;
   List<int> _levelProcessList = List.generate(300, (index) {
@@ -43,7 +59,13 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
   @override
   void initState() {
     // TODO: implement initState
-    _chapter = 1;
+
+
+    setState(() {
+
+
+
+    });
     super.initState();
   }
 
@@ -52,6 +74,15 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
 
     _levelProcessList = gs.getLevelProcessList();
+
+    print(_page);
+    print(_page);
+    print(_page);
+    print(_page);    print(_page);    print(_page);    print(_page);
+
+
+
+
 
     return WillPopScope(
       onWillPop: () async{
@@ -125,7 +156,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                             viewportFraction: 0.9,
                             aspectRatio: 1,
                             // height: ,
-                            initialPage: 0,
+                            initialPage: _page,
                           ),
                         )),
 

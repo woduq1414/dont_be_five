@@ -96,42 +96,31 @@ class _GameMapState extends State<GameMap> {
       });
     }
 
-    return WillPopScope(
-      onWillPop: () async{
-
-        if(!gs.isGameEnd){
-          showPauseDialog(context);
-        }
-
-
-        return true;
-      },
-      child: Container(
-          color: Colors.white,
-          child: Stack(
-            children: <Widget>[
-              SizedBox.expand(
-                child: CustomPaint(
-                  painter: BackgroundPainter(context: context),
+    return Container(
+        color: Colors.white,
+        child: Stack(
+          children: <Widget>[
+            SizedBox.expand(
+              child: CustomPaint(
+                painter: BackgroundPainter(context: context),
+              ),
+            ),
+            SizedBox.expand(
+              child: CanvasTouchDetector(
+                builder: (context) => CustomPaint(
+                  painter: MapPainter(levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
                 ),
               ),
-              SizedBox.expand(
-                child: CanvasTouchDetector(
-                  builder: (context) => CustomPaint(
-                    painter: MapPainter(levelData: levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
-                  ),
-                ),
-              ),
-              CustomPaint(
-                painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
-              ),
-              Goal(),
-              ..._cachedPersonBuilder,
-              utilButtonContainerBuilder(context: context),
-              itemContainerBuilder(context: context)
-            ],
-          )),
-    );
+            ),
+            CustomPaint(
+              painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
+            ),
+            Goal(),
+            ..._cachedPersonBuilder,
+            utilButtonContainerBuilder(context: context),
+            itemContainerBuilder(context: context)
+          ],
+        ));
   }
 }
 

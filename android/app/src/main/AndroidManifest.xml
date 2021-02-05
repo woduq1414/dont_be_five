@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.dont_be_five">
+    package="com.aperture.dont_be_five">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -36,7 +36,7 @@
 
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"
-            android:value="app_id"/>
+            android:value="@string/app_id"/>
 
         <meta-data
             android:name="com.google.android.gms.version"

@@ -1,4 +1,4 @@
-package com.example.dont_be_five;
+package com.aperture.dont_be_five;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

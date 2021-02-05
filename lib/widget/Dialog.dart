@@ -11,6 +11,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 YYDialog showGoalDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
@@ -217,7 +218,10 @@ YYDialog showPauseDialog(BuildContext context) {
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            FadeRoute(page: LevelSelectPage()),
+                            FadeRoute(
+                                page: LevelSelectPage(
+                              page: (level - 1) ~/ 12,
+                            )),
                           );
                         },
                         child: Container(
@@ -357,43 +361,52 @@ YYDialog showTutorialDialog({int page, BuildContext context}) {
     ..barrierDismissible = true
     ..width = gs.deviceSize.width * 0.9
     ..backgroundColor = Colors.white12.withOpacity(1)
-    ..duration = Duration(milliseconds: 800)
-
+    ..duration = Duration(milliseconds: 400)
     ..widget(Stack(
       children: [
         Container(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration:
               BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
-          child: CarouselSlider.builder(
-            itemCount: 7,
-            carouselController: buttonCarouselController,
-            itemBuilder: (BuildContext context, int itemIndex, int _) => Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[Image.asset(ImagePath.getTutorialImagePath(itemIndex + 1))],
-            )),
-            options: CarouselOptions(
-              // height: gs.deviceSize.height * 0.,
-              autoPlay: false,
-              reverse: false,
-              enableInfiniteScroll: false,
-              enlargeCenterPage: true,
-              viewportFraction: 0.9,
-              aspectRatio: 0.5,
-              // height: ,
-              initialPage: page -1,
-            ),
-          ),
+          child: Column(
+            children: [
+              Text("좌우로 넘겨보세요!", style: TextStyle(fontSize: 18),),
+              CarouselSlider.builder(
+                itemCount: 8,
+                carouselController: buttonCarouselController,
+                itemBuilder: (BuildContext context, int itemIndex, int _) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Image.asset(
+                          ImagePath.getTutorialImagePath(itemIndex + 1),
+                          height: MediaQuery.of(context).size.height * 0.7,
+                        )
+                      ],
+                    )),
+                options: CarouselOptions(
+                  // height: gs.deviceSize.height * 0.,
+                  autoPlay: false,
+                  reverse: false,
+                  enableInfiniteScroll: false,
+                  enlargeCenterPage: true,
+                  viewportFraction: 0.9,
+                  aspectRatio: MediaQuery.of(context).size.width / MediaQuery.of(context).size.height,
+                  // height: ,
+                  initialPage: page - 1,
+                ),
+              ),
+            ],
+          )
         ),
         Positioned.fill(
           left: 15,
           right: 15,
-          bottom: 15,
+          bottom: 7,
           child: Align(
-            alignment : Alignment.bottomCenter,
+            alignment: Alignment.bottomCenter,
             child: CustomButton(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -428,20 +441,113 @@ YYDialog showTutorialDialog({int page, BuildContext context}) {
             0.0,
             Tween<double>(begin: -50.0, end: 0)
                 .animate(
-              CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
-            )
+                  CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
+                )
                 .value,
           )
           ..scale(
             Tween<double>(begin: 0, end: 1.0)
                 .animate(
-              CurvedAnimation(curve: Curves.bounceIn, parent: animation),
-            )
+                  CurvedAnimation(curve: Curves.easeOut, parent: animation),
+                )
                 .value,
-          )
-        ,
-
+          ),
         child: child,
+      );
+    }
+    ..show();
+}
+
+YYDialog showSettingDialog({BuildContext context}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+
+  var yy = YYDialog();
+
+
+  var _volumeValue = gs.volumeValue;
+  var _isVibrate = gs.isVibrate;
+
+
+  return yy.build(context)
+    ..barrierDismissible = true
+    ..width = gs.deviceSize.width * 0.9
+    ..backgroundColor = Colors.white12.withOpacity(1)
+    // ..duration = Duration(milliseconds: 800)
+
+    ..widget(Stack(
+      children: [
+        Container(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration:
+                BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Row(
+                    children: [
+                      Text(
+                        "음량 : ",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      Builder(builder: (context2) {
+                        return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                          GlobalStatus gs2 = Provider.of<GlobalStatus>(context);
+                          return Slider(
+                            value: _volumeValue,
+                            min: 0,
+                            max: 100,
+                            divisions: 5,
+                            label: _volumeValue.toString(),
+                            onChanged: (double value) {
+                              state(() {
+                                _volumeValue = value;
+                              });
+                              gs2.volumeValue = value;
+                              var storage = FlutterSecureStorage();
+                              storage.write(key: "volumeValue", value: value.toString());
+                            },
+                          );
+                        });
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: 10,),
+                  Row(
+                    children: [
+                      Text(
+                        "진동 : ",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      Builder(builder: (context2) {
+                        return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                          GlobalStatus gs2 = Provider.of<GlobalStatus>(context);
+                          return Switch(
+                            value: _isVibrate == "true" ? true : false,
+                            onChanged: (value) {
+                              state(() {
+                                _isVibrate = value == true ? "true" : "false";
+                              });
+                              gs2.isVibrate = value == true ? "true" : "false";
+                              var storage = FlutterSecureStorage();
+                              storage.write(key: "isVibrate", value: value.toString());
+                            },
+
+                          );
+
+
+                        });
+                      }),
+                    ],
+                  )
+                ])),
+      ],
+    ))
+    ..animatedFunc = (child, animation) {
+      return ScaleTransition(
+        child: child,
+        scale: Tween(begin: 0.0, end: 1.0).animate(animation),
       );
     }
     ..show();

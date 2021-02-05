@@ -16,11 +16,11 @@ class AdManager {
       ? 'ca-app-pub-3940256099942544~1458002511' // iOS Test App ID
       : 'ca-app-pub-2755450101712612~4590691946';
 
-  bool isDebug = true;
+  bool isDebug = false;
 
 
-  static String _bannerUnitId ="ca-app-pub-2755450101712612/4676699347";
-  static String _interstitialUnitId = "ca-app-pub-2755450101712612/8297391916";
+  static String _bannerUnitId ="ca-app-pub-2755450101712612/7398201576";
+  static String _interstitialUnitId = "ca-app-pub-2755450101712612/3458956563";
 
   AdManager(){
     if(isDebug == true){
@@ -73,7 +73,7 @@ class AdManager {
   static void init() => _ads ??= Ads(
     _appId,
     bannerUnitId: _bannerUnitId,
-    keywords: <String>['ibm', 'computers'],
+    keywords: <String>['games', 'computers', 'game', 'mobile'],
     contentUrl: 'http://www.ibm.com',
     childDirected: false,
     testDevices: ['Samsung_Galaxy_SII_API_26:5554'],

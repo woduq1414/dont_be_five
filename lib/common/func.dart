@@ -9,6 +9,8 @@ import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/page/GamePage.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
+import 'package:dont_be_five/widget/Toast.dart';
+import 'package:dont_be_five/data/ToastType.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
@@ -25,19 +27,31 @@ void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false})
   print(levelDataList);
 
   LevelData _currentLevelData;
-  gs.initLevel();
+
+
 
   gs.context = context;
 
-  _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
+  try{
+    _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
+  }catch(e){
+    showCustomToast("곧 업데이트 됩니다! 감사합니다!", ToastType.small);
+    return;
+  }
+
+
+
+
 
 
   gs.deviceSize = MediaQuery.of(context).size;
 
   gs.levelData = _currentLevelData.clone();
+
+  gs.initLevel();
+
   gs.tileCornerOffsetList = calcTileCornerOffsetList(levelData: _currentLevelData, context: context);
   gs.personDataList = makePersonDataList(levelData: _currentLevelData, context: context);
-
 
   for(int i = 0 ; i < _currentLevelData.mapHeight; i ++){
     for(int j = 0; j < _currentLevelData.mapWidth ; j++){

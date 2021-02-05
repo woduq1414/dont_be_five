@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:games_services/games_services.dart';
 import 'package:dont_be_five/common/path.dart';
+import 'package:dont_be_five/common/Counter.dart';
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
+import 'package:dont_be_five/data/AchievementData.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/LevelDataJson.dart';
@@ -34,6 +37,15 @@ import 'package:audioplayers/audioplayers.dart';
 class GlobalStatus with ChangeNotifier {
 //  KakaoContext.clientId = '39d6c43a0a346cca6ebc7b2dbb8e4353';
 
+  Counter _counter;
+
+
+  Counter get counter => _counter;
+
+  set counter(Counter value) {
+    _counter = value;
+  }
+
   int getLastUnlockedLevel(){
     SaveData saveData = box.get('saveData');
     for(int i = 0 ; i < saveData.levelProcessList.length; i ++){
@@ -58,7 +70,7 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void clearProcess() async {
-    audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY);
+    audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY, volume: volumeValue);
     Map<String, dynamic> levelStarInfo = getLevelStarInfo();
 
     List<int> levelProcessList = getLevelProcessList();
@@ -84,6 +96,22 @@ class GlobalStatus with ChangeNotifier {
     saveData.levelProcessList = levelProcessList;
     saveData.save();
 
+    int level = levelData.seq;
+    if(level == 1){
+      GamesServices.unlock(achievement: Achievement(androidID: AchievementData.helloWorld));
+    }else if(level == 12){
+      GamesServices.unlock(achievement: Achievement(androidID: AchievementData.socialDistancing1));
+    }else if(level == 24){
+      GamesServices.unlock(achievement: Achievement(androidID: AchievementData.socialDistancing2));
+    }else if(level == 30){
+      GamesServices.unlock(achievement: Achievement(androidID: AchievementData.socialDistancing2_5));
+    }
+
+    if(counter.getValue("five") >= 19){
+      GamesServices.unlock(achievement: Achievement(androidID: AchievementData.disobedient));
+    }
+
+
   }
 
   List<int> getLevelProcessList() {
@@ -99,7 +127,6 @@ class GlobalStatus with ChangeNotifier {
     // box.clear();
 
     SaveData saveData = box.get('saveData');
-
     if (saveData == null) {
       print("null..");
       await initSaveData();
@@ -465,8 +492,16 @@ class GlobalStatus with ChangeNotifier {
           _usedItemCountMap[ItemData.isolate] += 1;
 
 
-          audioCache.play(SoundPath.isolate, mode: PlayerMode.LOW_LATENCY);
+          audioCache.play(SoundPath.isolate, mode: PlayerMode.LOW_LATENCY,volume: volumeValue);
           showCustomToast("자가격리!", ToastType.normal);
+
+          if(Tiles.getTileType(tile: tile, levelData: levelData) == Tiles.player){
+            if(!levelData.items.containsKey("release") || levelData.items["release"] == 0){
+              GamesServices.unlock(achievement: Achievement(androidID: AchievementData.isolatePlayer));
+            }
+          }
+
+
         } else if (selectedItem == ItemData.release) {
           _isolatedTileList.removeWhere((element) => element.x == tile.x && element.y == tile.y);
           _highlightTileMap[HighlightTile.isolated].removeWhere((element) => element.x == tile.x && element.y == tile.y);
@@ -481,7 +516,7 @@ class GlobalStatus with ChangeNotifier {
             _levelData.items[selectedItem.name] -= 1;
             _usedItemCountMap[ItemData.release] += 1;
 
-            audioCache.play(SoundPath.release, mode: PlayerMode.LOW_LATENCY);
+            audioCache.play(SoundPath.release, mode: PlayerMode.LOW_LATENCY,volume: volumeValue);
             showCustomToast("자가격리 해제!", ToastType.normal);
           }
         } else if (selectedItem == ItemData.vaccine) {
@@ -492,7 +527,7 @@ class GlobalStatus with ChangeNotifier {
           _levelData.items[selectedItem.name] -= 1;
           _usedItemCountMap[ItemData.vaccine] += 1;
 
-          audioCache.play(SoundPath.vaccine, mode: PlayerMode.LOW_LATENCY);
+          audioCache.play(SoundPath.vaccine, mode: PlayerMode.LOW_LATENCY,volume: volumeValue);
           showCustomToast("백신 투약!", ToastType.normal);
         }
       } else {
@@ -573,6 +608,16 @@ class GlobalStatus with ChangeNotifier {
     init();
   }
 
+  double _volumeValue;
+  String _isVibrate;
+
+  double get volumeValue => _volumeValue;
+
+  set volumeValue(double value) {
+    _volumeValue = value;
+    notifyListeners();
+  }
+
   init() async {
     // Map<String, dynamic> data = await parseJsonFromAssets('assets/json/levelData.json');
     // levelDataList = data["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
@@ -580,6 +625,23 @@ class GlobalStatus with ChangeNotifier {
     levelDataList = map_json["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
 
     await loadSaveData();
+
+    var storage = FlutterSecureStorage();
+
+    String savedVolumeValue = await storage.read(key: "volumeValue");
+    String savedIsVibrate = await storage.read(key: "isVibrate");
+
+    if(savedVolumeValue == null){
+      _volumeValue = 1;
+    }else{
+      _volumeValue = double.parse(savedVolumeValue);
+    }
+    if(savedIsVibrate == null){
+      _isVibrate = "true";
+    }else{
+      _isVibrate = savedIsVibrate;
+    }
+
 
     notifyListeners();
   }
@@ -605,6 +667,9 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void initLevel() {
+
+    _counter = Counter();
+
     _moveCount = 0;
     _isGameCleared = false;
     _usedItemCountMap = {ItemData.vaccine: 0, ItemData.release: 0, ItemData.isolate: 0};
@@ -621,6 +686,22 @@ class GlobalStatus with ChangeNotifier {
     _personDataList = [];
     _selectedItem = null;
     _selectMode = SelectMode.normal;
+
+    if(levelData.isolated != null){
+      for(int i = 0 ; i < levelData.mapHeight; i ++){
+        for(int j = 0 ; j < levelData.mapWidth ; j ++){
+          if(levelData.isolated[i][j] != 0){
+            TileData tile = TileData(x: j, y: i);
+            _isolatedTileList.add(tile);
+            _highlightTileMap[HighlightTile.isolated].add(tile);
+          }
+
+        }
+      }
+    }
+
+
+
   }
 
   void movePerson({TileData tile, Direction d}) async {
@@ -659,7 +740,7 @@ class GlobalStatus with ChangeNotifier {
       }
     }
 
-    audioCache.play(SoundPath.step, mode: PlayerMode.LOW_LATENCY);
+    audioCache.play(SoundPath.step, mode: PlayerMode.LOW_LATENCY,volume: volumeValue);
 
     // _personList[0].x = 1;
     // _personList[0].y = 0;
@@ -688,7 +769,7 @@ class GlobalStatus with ChangeNotifier {
       if (isGoal()) {
         print("goal!");
         Future.delayed(const Duration(milliseconds: 350), () {
-          Vibration.vibrate(duration: 1000);
+          runVibrate(duration: 1000);
           _isGameCleared = true;
 
           clearProcess();
@@ -758,17 +839,41 @@ class GlobalStatus with ChangeNotifier {
 
     if (fiveFlag) {
       // audioCache.play(SoundPath.beep, mode: PlayerMode.LOW_LATENCY);
-      Vibration.vibrate(duration: 300);
+      runVibrate(duration : 500);
       showCustomToast("5인 이상 집합 금지!", ToastType.normal);
+
+      _counter.increaseValue("five");
+
     }
 
     return fiveFlag;
   }
 
+  void runVibrate({int duration}){
+    if(_isVibrate == "true"){
+      Vibration.vibrate(duration: duration);
+    }
+  }
+
+
+  // void runSound({Duration duration}){
+  //   if(_isVibrate == true){
+  //     Vibration.vibrate(duration: duration);
+  //   }
+  // }
+
+
   bool get isGameCleared => _isGameCleared;
 
   set isGameCleared(bool value) {
     _isGameCleared = value;
+  }
+
+  String get isVibrate => _isVibrate;
+
+  set isVibrate(String value) {
+    _isVibrate = value;
+    notifyListeners();
   }
 }
 

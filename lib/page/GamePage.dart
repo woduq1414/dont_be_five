@@ -55,6 +55,15 @@ class _GamePageState extends State<GamePage> {
             case 4:
               showTutorialDialog(context: context, page: 3);
               break;
+            case 7:
+              showTutorialDialog(context: context, page: 5);
+              break;
+            case 13:
+              showTutorialDialog(context: context, page: 7);
+              break;
+            case 19:
+              showTutorialDialog(context: context, page: 8);
+              break;
           }
 
 
@@ -72,7 +81,7 @@ class _GamePageState extends State<GamePage> {
   @override
   Widget build(BuildContext context) {
 
-
+    GlobalStatus gs = Provider.of<GlobalStatus>(context);
 
 
 
@@ -91,8 +100,19 @@ class _GamePageState extends State<GamePage> {
     });
 
 
-    return Container(
-      child: GameMap(levelData: _currentLevelData,),
+    return WillPopScope(
+      onWillPop: () async{
+
+        if(!gs.isGameEnd){
+          showPauseDialog(context);
+        }
+
+
+        return true;
+      },
+      child: Container(
+        child: GameMap(levelData: _currentLevelData,),
+      ),
     );
   }
 }

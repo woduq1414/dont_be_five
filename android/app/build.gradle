@@ -5,6 +5,12 @@ if (localPropertiesFile.exists()) {
         localProperties.load(reader)
     }
 }
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
@@ -23,6 +29,8 @@ if (flutterVersionName == null) {
 
 apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+apply plugin: 'com.google.gms.google-services'  // Google Services plugin
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion 29
@@ -33,22 +41,78 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.dont_be_five"
+        applicationId "com.aperture.dont_be_five"
         minSdkVersion 19
         targetSdkVersion 29
+
+        multiDexEnabled true
+
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
+
+    signingConfigs{
+        releaseWithSignedKey {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+//            storeFile file(keystoreProperties['storeFile'])
+            storeFile file('./key.jks')
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+//            storeFile file(keystoreProperties['storeFile'])
+            storeFile file('./key.jks')
+            storePassword keystoreProperties['storePassword']
+        }
+
+    }
+
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
+//            signingConfig signingConfigs.debug
+
+
+            minifyEnabled true
+            useProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+
+        }
+        debug {
+            signingConfig signingConfigs.releaseWithSignedKey
         }
     }
+
+
+
 }
 
 flutter {
     source '../..'
 }
+
+
+
+dependencies {
+
+    implementation 'com.android.support:multidex:1.0.3'
+//    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+    implementation 'com.google.firebase:firebase-analytics:17.5.0'
+    implementation 'com.google.android.gms:play-services-basement:17.4.0'
+
+//    implementation 'com.google.android.gms:play-services-ads:19.6.0'
+//    implementation 'com.google.android.gms:play-services-games:21.0.0'
+}
+
+
+
+//apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
