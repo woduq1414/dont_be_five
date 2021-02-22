@@ -17,6 +17,7 @@ import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:launch_review/launch_review.dart';
 import 'package:provider/provider.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/path.dart';
@@ -35,8 +36,6 @@ import 'Toast.dart';
 
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
-
-
 
 double interDivision({double start, double end, var m, var n}) {
   return (start * n + end * m) / (m + n);
@@ -93,6 +92,29 @@ class _GameMapState extends State<GameMap> {
       _isGoalDialogShowing = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showGoalDialog(context);
+
+        if (levelData.seq == 24) {
+          if (gs.isRateDialogShowed == false) {
+            gs.isRateDialogShowed = true;
+            showCustomConfirmDialog(
+                context: context,
+                title: "게임이 어떠신가요?",
+                content: "평가해주시면 다음 업데이트에 도움이 됩니다 :)",
+                confirmButtonAction: () {
+                  Navigator.of(context).pop();
+                  LaunchReview.launch(
+                    androidAppId: "com.aperture.dont_be_five",
+                  );
+                },
+                cancelButtonAction: () {
+                  Navigator.of(context).pop();
+                },
+                cancelButtonText: "나중에",
+                confirmButtonText: "평가하기");
+          }
+        }else{
+
+        }
       });
     }
 
@@ -146,10 +168,18 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
                   // text:
                   style: DefaultTextStyle.of(context).style,
                   children: <TextSpan>[
-                    TextSpan(text: ' ', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(text: gs.moveCount.toString(), style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
-                    TextSpan(text: ' ', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(text: '이동', style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
+                    TextSpan(
+                        text: ' ',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(
+                        text: gs.moveCount.toString(),
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
+                    TextSpan(
+                        text: ' ',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(
+                        text: '이동',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
                   ],
                 ),
               ),
@@ -194,10 +224,9 @@ Widget utilButtonContainerBuilder({BuildContext context}) {
 Widget itemContainerBuilder({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context);
 
-  if(gs.levelData.items.length == 0){
+  if (gs.levelData.items.length == 0) {
     return Container();
   }
-
 
   return Positioned.fill(
     bottom: 80,
@@ -234,6 +263,9 @@ Widget itemBuilder({BuildContext context, String itemName}) {
     case "vaccine":
       item = ItemData.vaccine;
       break;
+    case "diagonal":
+      item = ItemData.diagonal;
+      break;
   }
 
   return Container(
@@ -242,7 +274,6 @@ Widget itemBuilder({BuildContext context, String itemName}) {
       onTap: () {
         gs.selectItem(item);
         print("SD");
-
       },
       child: Container(
           decoration:
@@ -440,8 +471,7 @@ class MapPainter extends CustomPainter {
         path.addPolygon(points, true);
 
         myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
-
-          if(isSample){
+          if (isSample) {
             return;
           }
 
@@ -474,10 +504,9 @@ List<Widget> personBuilder({BuildContext context}) {
   List<PersonData> personDataList = context.select((GlobalStatus gs) => gs.personDataList);
   // = gs.personDataList;
 
-  if(personDataList == null){
+  if (personDataList == null) {
     return [Container()];
   }
-
 
   return personDataList.map((x) {
     return Person(

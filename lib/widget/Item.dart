@@ -45,6 +45,9 @@ class _ItemState extends State<Item> with TickerProviderStateMixin {
       case "vaccine":
         item = ItemData.vaccine;
         break;
+      case "diagonal":
+        item = ItemData.diagonal;
+        break;
     }
   }
 

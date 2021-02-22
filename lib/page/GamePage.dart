@@ -64,6 +64,12 @@ class _GamePageState extends State<GamePage> {
             case 19:
               showTutorialDialog(context: context, page: 8);
               break;
+            case 31:
+              showTutorialDialog(context: context, page: 9);
+              break;
+            case 37:
+              showTutorialDialog(context: context, page: 10);
+              break;
           }
 
 

@@ -23,9 +23,9 @@ class Tiles {
       return Tiles.blank;
     }else if(value == 0){
       return Tiles.block;
-    }else if(1 <= value && value <= 5){
+    }else if(1 <= value && value <= 9){
       return Tiles.person;
-    }else if(101 <= value && value <= 105){
+    }else if(101 <= value && value <= 109){
       return Tiles.player;
     }else if(value == 999999) {
       return Tiles.goal;

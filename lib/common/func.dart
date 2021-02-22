@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
+import 'package:dont_be_five/data/LevelDataJson.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
@@ -23,8 +24,19 @@ String getRandString(int len) {
 void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false}) async {
   GlobalStatus gs = context.read<GlobalStatus>();
   // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+
+
+
   List<LevelData> levelDataList = gs.levelDataList;
   print(levelDataList);
+
+  if(gs.isDebug){
+    Map<String, dynamic> mapJson = MapJsonClass.getMapJson();
+    levelDataList = mapJson["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
+  }
+
+
+
 
   LevelData _currentLevelData;
 
@@ -136,7 +148,7 @@ List<dynamic> makePersonDataList({LevelData levelData, BuildContext context}) {
 
   for (int i = 0; i < levelData.mapHeight; i++) {
     for (int j = 0; j < levelData.mapWidth; j++) {
-      if (1 <= levelData.map[i][j] && levelData.map[i][j] <= 4) {
+      if (1 <= levelData.map[i][j] && levelData.map[i][j] <= 9) {
         for (int k = 0; k < levelData.map[i][j]; k++) {
           // personList.add(Person(x: j, y:i, idx:k, count: levelData.map[i][j],));
           personDataList.add(PersonData.fromJson({
@@ -144,7 +156,7 @@ List<dynamic> makePersonDataList({LevelData levelData, BuildContext context}) {
           }));
         }
       }
-      if (101 <= levelData.map[i][j] && levelData.map[i][j] <= 104) {
+      if (101 <= levelData.map[i][j] && levelData.map[i][j] <= 109) {
         for (int k = 0; k < levelData.map[i][j] - 100; k++) {
           // personList.add(Person(x: j, y:i, idx:k, count: levelData.map[i][j],));
           personDataList.add(PersonData.fromJson({

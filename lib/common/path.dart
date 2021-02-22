@@ -6,6 +6,7 @@ class ImagePath {
   static const String isolate = "./assets/images/isolation.png";
   static const String release = "./assets/images/release.png";
   static const String vaccine = "./assets/images/vaccine.png";
+  static const String diagonal = "./assets/images/diagonal.png";
   static const String titleLogo = "./assets/images/logo.png";
 
 

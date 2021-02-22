@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:yaml/yaml.dart';
+import 'package:flutter/services.dart';
+import 'package:launch_review/launch_review.dart';
 YYDialog showGoalDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
@@ -373,7 +375,7 @@ YYDialog showTutorialDialog({int page, BuildContext context}) {
             children: [
               Text("좌우로 넘겨보세요!", style: TextStyle(fontSize: 18),),
               CarouselSlider.builder(
-                itemCount: 8,
+                itemCount: 10,
                 carouselController: buttonCarouselController,
                 itemBuilder: (BuildContext context, int itemIndex, int _) => Center(
                     child: Column(
@@ -485,34 +487,34 @@ YYDialog showSettingDialog({BuildContext context}) {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Row(
-                    children: [
-                      Text(
-                        "음량 : ",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      Builder(builder: (context2) {
-                        return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
-                          GlobalStatus gs2 = Provider.of<GlobalStatus>(context);
-                          return Slider(
-                            value: _volumeValue,
-                            min: 0,
-                            max: 100,
-                            divisions: 5,
-                            label: _volumeValue.toString(),
-                            onChanged: (double value) {
-                              state(() {
-                                _volumeValue = value;
-                              });
-                              gs2.volumeValue = value;
-                              var storage = FlutterSecureStorage();
-                              storage.write(key: "volumeValue", value: value.toString());
-                            },
-                          );
-                        });
-                      }),
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Text(
+                  //       "음량 : ",
+                  //       style: TextStyle(fontSize: 18),
+                  //     ),
+                  //     Builder(builder: (context2) {
+                  //       return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                  //         GlobalStatus gs2 = Provider.of<GlobalStatus>(context);
+                  //         return Slider(
+                  //           value: _volumeValue,
+                  //           min: 0,
+                  //           max: 100,
+                  //           divisions: 5,
+                  //           label: _volumeValue.toString(),
+                  //           onChanged: (double value) {
+                  //             state(() {
+                  //               _volumeValue = value;
+                  //             });
+                  //             gs2.volumeValue = value;
+                  //             var storage = FlutterSecureStorage();
+                  //             storage.write(key: "volumeValue", value: value.toString());
+                  //           },
+                  //         );
+                  //       });
+                  //     }),
+                  //   ],
+                  // ),
                   SizedBox(height: 10,),
                   Row(
                     children: [
@@ -540,7 +542,46 @@ YYDialog showSettingDialog({BuildContext context}) {
                         });
                       }),
                     ],
-                  )
+                  ),
+                  Row(children: [
+                    Text(
+                      "버전 : ",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    FutureBuilder(
+                        future: rootBundle.loadString("pubspec.yaml"),
+                        builder: (context, snapshot) {
+                          String version = "Unknown";
+                          if (snapshot.hasData) {
+                            var yaml = loadYaml(snapshot.data);
+                            version = yaml["version"];
+                          }
+
+                          return Container(
+                            child: Text(
+                              '$version',
+                              style: TextStyle(fontSize: gs.s5()),
+                            ),
+                          );
+                        }),
+
+                  ],),
+                  SizedBox(height: 5,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+
+                    CustomButton(
+                      backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
+                      onTap: (){
+                        LaunchReview.launch(androidAppId: "com.aperture.dont_be_five",);
+                      },
+                      child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                          child: Text("별점 평가/리뷰 하기", style: TextStyle(fontSize: gs.s5()),)),
+                    )
+                  ],)
+
                 ])),
       ],
     ))
@@ -551,4 +592,102 @@ YYDialog showSettingDialog({BuildContext context}) {
       );
     }
     ..show();
+}
+
+
+void showCustomConfirmDialog(
+    {BuildContext context,
+      String title,
+      String content,
+      String cancelButtonText,
+      String confirmButtonText,
+      var cancelButtonAction,
+      var confirmButtonAction}) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // return object of type Dialog
+      return AlertDialog(
+        contentPadding: EdgeInsets.only(top: 0.0),
+        titlePadding: EdgeInsets.all(0),
+        buttonPadding: EdgeInsets.all(0),
+        actionsPadding: EdgeInsets.all(0),
+        actionsOverflowButtonSpacing: 0,
+//        buttonPadding : EdgeInsets.all(0),
+        content: Container(
+//          height : 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+//            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: 5, top: 20, right: 5, bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+//                      height: 25,
+                      margin: EdgeInsets.only(left: 5),
+                      child: Text(
+                        title,
+                        style: TextStyle(fontSize: 20 ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    if (content != null) Container(
+                      margin: EdgeInsets.only(bottom: 10, left: 5),
+                      child: Text(
+                        content,
+                        style: TextStyle(fontSize: 15),
+                        textAlign: TextAlign.left,
+                      ),
+                    ) else Container(),
+
+                  ],
+                ),
+              ),
+              Container(
+                height: 35,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    cancelButtonText != null ? Expanded(
+                      child: Material(
+                        color: Color.fromRGBO(190, 190, 190, 1),
+                        child: InkWell(
+                          onTap: cancelButtonAction,
+                          child: Container(
+                            height: 35,
+                            child: Center(
+                              child: Text(cancelButtonText),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ) : Container(),
+                    Expanded(
+                      child: Material(
+                        color: primaryYellow,
+                        child: InkWell(
+                          onTap: confirmButtonAction,
+                          child: Container(
+                            height: 35,
+                            child: Center(
+                              child: Text(confirmButtonText),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        actions: <Widget>[],
+      );
+    },
+  );
 }

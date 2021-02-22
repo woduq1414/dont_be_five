@@ -24,9 +24,7 @@ import 'package:provider/provider.dart';
 import 'GamePage.dart';
 
 class LevelSelectPage extends StatefulWidget {
-
   int page = 0;
-
 
   LevelSelectPage({this.page});
 
@@ -36,15 +34,18 @@ class LevelSelectPage extends StatefulWidget {
 
 class _LevelSelectPageState extends State<LevelSelectPage> {
   int _page;
-  _LevelSelectPageState(int page){
 
-    if(page == null){
+  _LevelSelectPageState(int page) {
+    if (page == null) {
+      // page = 0;
+
+
       page = 0;
+
+
     }
     _page = page;
   }
-
-
 
   CarouselController buttonCarouselController = CarouselController();
   int _chapter;
@@ -60,12 +61,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
   void initState() {
     // TODO: implement initState
 
-
-    setState(() {
-
-
-
-    });
+    setState(() {});
     super.initState();
   }
 
@@ -78,14 +74,13 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     print(_page);
     print(_page);
     print(_page);
-    print(_page);    print(_page);    print(_page);    print(_page);
-
-
-
-
+    print(_page);
+    print(_page);
+    print(_page);
+    print(_page);
 
     return WillPopScope(
-      onWillPop: () async{
+      onWillPop: () async {
         Navigator.pushReplacement(
           context,
           FadeRoute(page: HomePage()),
@@ -118,7 +113,21 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                           textAlign: TextAlign.center,
                         )),
                     SizedBox(
-                      height: 15,
+                      height: 5,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(Icons.star, color: primaryYellow, size: gs.s2()),
+                        SizedBox(
+                          width: 3,
+                        ),
+                        Material(
+                            color: Colors.transparent,
+                            child: Text("${gs.getTotalStarCount()}/${gs.getLastUnlockedLevel() * 3}",
+                                style: TextStyle(fontSize: gs.s4(), color: Colors.white)))
+                      ],
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.max,
@@ -289,53 +298,73 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     havingStar.add(levelStatus ~/ 2 % 2 == 1);
     havingStar.add(levelStatus ~/ 4 % 2 == 1);
 
-    return GestureDetector(
-      onTap: levelStatus != -1
-          ? () {
-              moveToLevel(level: level, context: context);
+    int _cnt =0;
+
+    return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+
+      return  GestureDetector(
+
+        onLongPress: (){
+          if(level == 141){
+            state(() {
+              _cnt = _cnt + 1;
+            });
+            print(_cnt);
+            if(_cnt >= 5){
+              gs.unlockAllLevel();
+              gs.loadSaveData();
             }
-          : null,
-      child: Container(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          padding: EdgeInsets.symmetric(horizontal: 0),
-          decoration: levelStatus != -1
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: Colors.white.withOpacity(1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: levelStatus == 7 ? Colors.yellowAccent.withOpacity(0.5) : Colors.white12.withOpacity(0.5),
-                      spreadRadius:levelStatus == 7 ? 3 : 2,
-                      blurRadius: 2,
-                      offset: Offset(0, 2), // changes position of shadow
-                    ),
+          }
+        },
+
+        onTap: levelStatus != -1
+            ? () {
+          moveToLevel(level: level, context: context);
+        }
+            : null,
+        child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 0),
+            decoration: levelStatus != -1
+                ? BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.white.withOpacity(1),
+              boxShadow: [
+                BoxShadow(
+                  color: levelStatus == 7 ? Colors.yellowAccent.withOpacity(0.5) : Colors.white12.withOpacity(0.5),
+                  spreadRadius: levelStatus == 7 ? 3 : 2,
+                  blurRadius: 2,
+                  offset: Offset(0, 2), // changes position of shadow
+                ),
+              ],
+            )
+                : BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.grey.withOpacity(0.5)),
+            child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          level.toString(),
+                          style: TextStyle(fontSize: 25, color: levelStatus != -1 ? Colors.black : Colors.black.withOpacity(0.5)),
+                        )),
+                    levelStatus != -1
+                        ? Container(
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: havingStar.map((e) {
+                            return e == true
+                                ? Flexible(flex: 2, child: Icon(Icons.star, color: primaryYellow, size: gs.s3()))
+                                : Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3()));
+                          }).toList()),
+                    )
+                        : Container(),
                   ],
-                )
-              : BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.grey.withOpacity(0.5)),
-          child: Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Material(
-                  color: Colors.transparent,
-                  child: Text(
-                    level.toString(),
-                    style: TextStyle(fontSize: 25, color: levelStatus != -1 ? Colors.black : Colors.black.withOpacity(0.5)),
-                  )),
-              levelStatus != -1
-                  ? Container(
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: havingStar.map((e) {
-                          return e == true
-                              ? Flexible(flex: 2, child: Icon(Icons.star, color: primaryYellow, size: gs.s3()))
-                              : Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3()));
-                        }).toList()),
-                  )
-                  : Container(),
-            ],
-          ))),
-    );
+                ))),
+      );
+
+    });
   }
 }

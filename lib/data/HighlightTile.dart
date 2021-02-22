@@ -15,6 +15,8 @@ class HighlightTile {
   static const String five = "five";
   static const String selectable = "selectable";
   static const String isolated = "isolated";
+  static const String confined = "confined";
+
 
   static Paint getPaint(
 
@@ -50,6 +52,11 @@ class HighlightTile {
       paint = Paint();
       paint.style = PaintingStyle.fill;
       paint.color = Colors.white.withOpacity(0.5);
+
+    }else if (highlightType == HighlightTile.confined) {
+      paint = Paint();
+      paint.style = PaintingStyle.fill;
+      paint.color = Colors.purpleAccent.withOpacity(0.5);
 
     }
 

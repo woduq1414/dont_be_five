@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
         fullWidth: false, //Whether the toast is full screen (subtract the horizontal margin)
         child: MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
+            title: "Don't Be Five",
             theme: ThemeData(
               fontFamily: Font.light,
               // This is the theme of your application.

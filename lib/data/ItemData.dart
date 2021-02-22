@@ -11,5 +11,6 @@ class ItemData {
   static const ItemData isolate = ItemData(name: "isolate", imagePath: ImagePath.isolate);
   static const ItemData release = ItemData(name: "release", imagePath: ImagePath.release);
   static const ItemData vaccine = ItemData(name: "vaccine", imagePath: ImagePath.vaccine);
+  static const ItemData diagonal = ItemData(name: "diagonal", imagePath: ImagePath.diagonal);
 
 }

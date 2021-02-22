@@ -22,7 +22,7 @@ import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:dont_be_five/widget/Person.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-
+import 'package:yaml/yaml.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:games_services/games_services.dart';
 import 'package:provider/provider.dart';
@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.03 + _animation.value,
                       ),
-                      Image.asset(ImagePath.titleLogo),
+                      Image.asset(ImagePath.titleLogo, color: Colors.white,),
 
                     ],
                   ),
