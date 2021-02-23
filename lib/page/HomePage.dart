@@ -13,6 +13,7 @@ import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/page/HomePage.dart';
 import 'package:dont_be_five/page/LevelSelectPage.dart';
+import 'package:dont_be_five/page/MapEditPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
@@ -35,10 +36,9 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
-
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   LevelData _levelData = LevelData.fromJson({
-    "seq": 99,
+    "seq": 9999,
     "mapWidth": 5,
     "mapHeight": 5,
     "map": [
@@ -57,8 +57,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
   AnimationController _animationController;
   Animation _animation;
 
-
   DateTime currentBackPressTime;
+  List<Widget> _cachedPersonBuilder = [Container()];
+
+  bool _personLoaded = false;
 
   @override
   void dispose() {
@@ -68,34 +70,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
     super.dispose();
   }
 
-  test() async{
+  test() async {
     // SigninResult result =  await PlayGames.signIn();
   }
 
-
   void initState() {
     // TODO: implement initState
-
-
-
-    AdManager.init();
-    AdManager.showBanner();
-
-
+    _personLoaded = false;
+    // AdManager.init();
+    // AdManager.showBanner();
 
     // GamesServices.signIn();
     // test();
 
     _animationController = AnimationController(vsync: this, duration: Duration(seconds: 3));
     _animationController.repeat(reverse: true);
-    _animation = Tween(begin: 2.0, end: 8.0,).animate(new CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInCirc
-    ))
+    _animation = Tween(
+      begin: 2.0,
+      end: 8.0,
+    ).animate(new CurvedAnimation(parent: _animationController, curve: Curves.easeInCirc))
       ..addListener(() {
         setState(() {});
       });
-
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -103,7 +99,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
         _tileCornerOffsetList = calcTileCornerOffsetList(levelData: _levelData, context: context);
         gs.tileCornerOffsetList = _tileCornerOffsetList;
 
-        _personDataList = makePersonDataList(levelData: _levelData, context: context);
 
 
         // _levelData =
@@ -111,8 +106,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
         gs.levelData = _levelData;
         gs.personDataList = _personDataList;
         gs.deviceSize = MediaQuery.of(context).size;
+
+        _personDataList = makePersonDataList(levelData: _levelData, context: context);
+        gs.personDataList = _personDataList;
+        print("sdjlk");
+        _cachedPersonBuilder = personBuilder(context: context, pdl: _personDataList);
+        gs.notify();
         print(_levelData);
 
+        // print(_cachedPersonBuilder);
       });
     });
     super.initState();
@@ -122,16 +124,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
     gs.deviceSize = MediaQuery.of(context).size;
+    //
 
+    // if (_personLoaded == false) {
+    //   // gs.personDataList = _personDataList;
+    //   // _personDataList = makePersonDataList(levelData: _levelData, context: context);
+    //   print("sdjlk");
+    //   // _cachedPersonBuilder = personBuilder(context: context, pdl: _personDataList);
+    //   setState(() {
+    //
+    //     _personLoaded = true;
+    //     print(_cachedPersonBuilder);
+    //   });
+    // }
 
+    print(_cachedPersonBuilder);
 
-
+    // return Container();
 
     return WillPopScope(
       onWillPop: () async {
         DateTime now = DateTime.now();
-        if (currentBackPressTime == null ||
-            now.difference(currentBackPressTime) > Duration(seconds: 1)) {
+        if (currentBackPressTime == null || now.difference(currentBackPressTime) > Duration(seconds: 1)) {
           currentBackPressTime = now;
           return Future.value(false);
         }
@@ -150,20 +164,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
                     painter: BackgroundPainter(context: context),
                   ),
                 ),
-
-
-
-
-                _tileCornerOffsetList != null?
-                SizedBox.expand(
-                  child: CanvasTouchDetector(
-                    builder: (context) => CustomPaint(
-                      painter:
-                          MapPainter(levelData: _levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
-                    ),
-                  ),
-                ) : Container(),
-                ... _tileCornerOffsetList != null? personBuilder(context: context) : [Container()],
+                _tileCornerOffsetList != null
+                    ? SizedBox.expand(
+                        child: CanvasTouchDetector(
+                          builder: (context) => CustomPaint(
+                            painter: MapPainter(
+                                levelData: _levelData, tileCornerOffsetList: _tileCornerOffsetList, context: context),
+                          ),
+                        ),
+                      )
+                    : Container(),
+                ..._tileCornerOffsetList != null ? _cachedPersonBuilder : [Container()],
                 Container(
                   margin: EdgeInsets.only(left: 15, right: 15),
                   child: Column(
@@ -171,14 +182,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.03 + _animation.value,
                       ),
-                      Image.asset(ImagePath.titleLogo, color: Colors.white,),
-
+                      Image.asset(
+                        ImagePath.titleLogo,
+                        color: Colors.white,
+                      ),
                     ],
                   ),
                 ),
-
                 Positioned.fill(
-                  bottom: 130 ,
+                  bottom: 130,
                   left: 15,
                   right: 15,
                   child: Align(
@@ -202,13 +214,48 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
                       ),
                       backgroundColor: Colors.white70.withOpacity(0.9),
                       onTap: () {
-
                         // moveToLevel(level: 23 , context: context);
                         // return;
 
                         Navigator.pushReplacement(
                           context,
                           FadeRoute(page: LevelSelectPage()),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  bottom: 180,
+                  left: 15,
+                  right: 15,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: CustomButton(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.play_arrow, size: gs.s2()),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Material(
+                            color: Colors.transparent,
+                            child: Text("맵 에디터",
+                                style: TextStyle(
+                                  fontSize: gs.s4(),
+                                )),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.white70.withOpacity(0.9),
+                      onTap: () {
+                        // moveToLevel(level: 23 , context: context);
+                        // return;
+
+                        Navigator.pushReplacement(
+                          context,
+                          FadeRoute(page: MapEditPage()),
                         );
                       },
                     ),
@@ -222,47 +269,56 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin  {
   }
 }
 
-Widget buildRightMenuContainer({BuildContext context}){
+Widget buildRightMenuContainer({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   return Positioned(
     right: 0,
     bottom: MediaQuery.of(context).size.height * 0.4,
     child: Container(
-      padding: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(18), bottomLeft: Radius.circular(18)),
-        color: Colors.black.withOpacity(0.5),
-
-      ),
-      child: Column(
-        children: <Widget>[
-          SizedBox(height: 5,),
-          GestureDetector(
-            onTap: () async{
-              // SigninResult result =  await PlayGames.signIn();
-
-              // print(result);
-              await GamesServices.showAchievements();
-
-            },
-            child: Container(
-              child: Icon(Icons.military_tech, size: gs.s1(), color: Colors.white,),
+        padding: EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 5),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(18), bottomLeft: Radius.circular(18)),
+          color: Colors.black.withOpacity(0.5),
+        ),
+        child: Column(
+          children: <Widget>[
+            SizedBox(
+              height: 5,
             ),
-          ),
-          SizedBox(height: 5,),
-          GestureDetector(
-            onTap: (){
-              showSettingDialog(context :context);
+            GestureDetector(
+              onTap: () async {
+                // SigninResult result =  await PlayGames.signIn();
 
-
-            },
-            child: Container(
-              child: Icon(Icons.settings, size: gs.s2(), color: Colors.white,),
+                // print(result);
+                await GamesServices.showAchievements();
+              },
+              child: Container(
+                child: Icon(
+                  Icons.military_tech,
+                  size: gs.s1(),
+                  color: Colors.white,
+                ),
+              ),
             ),
-          ),
-          SizedBox(height: 5,),
-        ],
-      )
-    ),
+            SizedBox(
+              height: 5,
+            ),
+            GestureDetector(
+              onTap: () {
+                showSettingDialog(context: context);
+              },
+              child: Container(
+                child: Icon(
+                  Icons.settings,
+                  size: gs.s2(),
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 5,
+            ),
+          ],
+        )),
   );
 }

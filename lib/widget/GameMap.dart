@@ -5,6 +5,7 @@ import 'package:dont_be_five/common/paint.dart';
 import 'package:dont_be_five/data/Direction.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
 import 'package:dont_be_five/data/ItemData.dart';
+import 'package:dont_be_five/data/MapInstance.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/SelectMode.dart';
 import 'package:dont_be_five/data/SelectType.dart';
@@ -65,7 +66,7 @@ class _GameMapState extends State<GameMap> {
 
   _GameMapState(this.levelData);
 
-  List<Widget> _cachedPersonBuilder;
+  List<Widget> _cachedPersonBuilder = [];
 
   List<dynamic> _tileCornerOffsetList = [];
 
@@ -84,9 +85,15 @@ class _GameMapState extends State<GameMap> {
       _tileCornerOffsetList = gs.tileCornerOffsetList;
     });
 
-    if (_cachedPersonBuilder == null) {
-      _cachedPersonBuilder = personBuilder(context: context);
+    if (_cachedPersonBuilder == null || (gs.isEditMode && gs.isRenewPersonBuilder)) {
+      setState(() {
+        _cachedPersonBuilder = personBuilder(context: context);
+      });
+
+      gs.isRenewPersonBuilder = false;
     }
+
+    print("rebuild");
 
     if (gs.isGameEnd && _isGoalDialogShowing == false) {
       _isGoalDialogShowing = true;
@@ -112,12 +119,11 @@ class _GameMapState extends State<GameMap> {
                 cancelButtonText: "나중에",
                 confirmButtonText: "평가하기");
           }
-        }else{
-
-        }
+        } else {}
       });
     }
-
+    print("sdf");
+    print(_cachedPersonBuilder);
     return Container(
         color: Colors.white,
         child: Stack(
@@ -139,86 +145,10 @@ class _GameMapState extends State<GameMap> {
             ),
             Goal(),
             ..._cachedPersonBuilder,
-            utilButtonContainerBuilder(context: context),
             itemContainerBuilder(context: context)
           ],
         ));
   }
-}
-
-Widget utilButtonContainerBuilder({BuildContext context}) {
-  GlobalStatus gs = Provider.of<GlobalStatus>(context);
-  return Positioned(
-    // right: 20,
-    top: 10 + MediaQuery.of(context).padding.top,
-    child: Container(
-        width: gs.deviceSize.width,
-        padding: EdgeInsets.symmetric(horizontal: 0),
-        decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-              margin: EdgeInsets.only(left: 10),
-              decoration: BoxDecoration(
-                  color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-              child: RichText(
-                text: TextSpan(
-                  // text:
-                  style: DefaultTextStyle.of(context).style,
-                  children: <TextSpan>[
-                    TextSpan(
-                        text: ' ',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(
-                        text: gs.moveCount.toString(),
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
-                    TextSpan(
-                        text: ' ',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(
-                        text: '이동',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(right: 10),
-              child: Row(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () {
-                      // Navigator.of(context).pop();
-                      moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: Icon(Icons.replay),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      showPauseDialog(context);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: Icon(Icons.reorder),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        )),
-  );
 }
 
 Widget itemContainerBuilder({BuildContext context}) {
@@ -455,12 +385,206 @@ class MapPainter extends CustomPainter {
 
     }
 
-    for (int i = 0; i < levelData.mapHeight; i++) {
-      for (int j = 0; j < levelData.mapWidth; j++) {
-        if (levelData.map[i][j] == -1) {
-          continue;
+    void onTileTapDownAction(int i, int j) {
+      if (isSample) {
+        return;
+      }
+
+      // gs.movePerson(x:j, y:i, d : Direction(-1,0));
+      if (gs.isEditMode == false) {
+        if (gs.selectMode == SelectMode.normal) {
+          gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
+        } else if (gs.selectMode == SelectMode.move) {
+          // print("!@#!@#");
+          gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personMove);
+        } else if (gs.selectMode == SelectMode.itemTargetSelect) {
+          // print("!@#!@#");
+          gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.itemTargetSelect);
+        }
+      } else {
+        LevelData tempLevelData = gs.levelData;
+        TileData targetTile = TileData(x: j, y: i);
+
+        bool f = false;
+        for (TileData t in gs.highlightTileMap[HighlightTile.selectable]) {
+          if (t.x == j && t.y == i) {
+            f = true;
+            break;
+          }
+        }
+        if (f == false) {
+          return;
         }
 
+        switch (gs.selectedMapInstance) {
+          case MapInstance.blankTile:
+            tempLevelData.map[i][j] = -1;
+            tempLevelData.isolated[i][j] = 0;
+            gs.isolatedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            gs.highlightTileMap[HighlightTile.isolated]
+                .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+
+            tempLevelData.confined[i][j] = 0;
+            gs.confinedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            gs.highlightTileMap[HighlightTile.confined]
+                .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+
+            gs.levelData = tempLevelData;
+            break;
+          case MapInstance.blockTile:
+            tempLevelData.map[i][j] = 0;
+            gs.levelData = tempLevelData;
+            break;
+          case MapInstance.isolatedTile:
+            if (tempLevelData.isolated[i][j] == 0) {
+              tempLevelData.isolated[i][j] = 1;
+              gs.isolatedTileList.add(targetTile);
+              gs.highlightTileMap[HighlightTile.isolated].add(targetTile);
+            } else {
+              tempLevelData.isolated[i][j] = 0;
+              gs.isolatedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+              gs.highlightTileMap[HighlightTile.isolated]
+                  .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            }
+
+            gs.levelData = tempLevelData;
+            break;
+          case MapInstance.confinedTile:
+            if (tempLevelData.confined[i][j] == 0) {
+              tempLevelData.confined[i][j] = 1;
+              gs.confinedTileList.add(targetTile);
+              gs.highlightTileMap[HighlightTile.confined].add(targetTile);
+            } else {
+              tempLevelData.confined[i][j] = 0;
+              gs.confinedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+              gs.highlightTileMap[HighlightTile.confined]
+                  .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            }
+            gs.levelData = tempLevelData;
+            break;
+
+          case MapInstance.eraserObject:
+            if (1 <= tempLevelData.map[i][j] && tempLevelData.map[i][j] <= 4) {
+              gs.personDataList.removeWhere((p) => (p.x == targetTile.x &&
+                  p.y == targetTile.y &&
+                  p.idx == tempLevelData.map[targetTile.y][targetTile.x] - 1));
+
+              tempLevelData.map[i][j] -= 1;
+            } else if (101 <= tempLevelData.map[i][j] && tempLevelData.map[i][j] <= 104) {
+              gs.personDataList.removeWhere((p) => (p.x == targetTile.x &&
+                  p.y == targetTile.y &&
+                  p.idx == tempLevelData.map[targetTile.y][targetTile.x] - 100 - 1));
+
+              tempLevelData.map[i][j] -= 1;
+
+              if (tempLevelData.map[i][j] == 100) {
+                tempLevelData.map[i][j] = 0;
+              }
+            } else if (tempLevelData.map[i][j] == 999999) {
+              tempLevelData.map[i][j] = 0;
+
+              gs.goalTile = null;
+            }
+
+            gs.levelData = tempLevelData;
+            gs.isFiveAll();
+            // gs.notify();
+            break;
+
+          case MapInstance.playerObject:
+            int cnt = 0;
+            for (int i = 0; i < tempLevelData.mapHeight; i++) {
+              for (int j = 0; j < tempLevelData.mapWidth; j++) {
+                if (101 <= tempLevelData.map[i][j] && tempLevelData.map[i][j] <= 104) {
+                  cnt += tempLevelData.map[i][j] - 100;
+                }
+              }
+            }
+            if (cnt >= 4) {
+              showCustomToast("플레이어는 최대 4개까지 놓을 수 있습니다.", ToastType.small);
+              break;
+            }
+
+            if (tempLevelData.map[i][j] == 0) {
+              tempLevelData.map[i][j] = 101;
+            } else {
+              tempLevelData.map[i][j] += 1;
+            }
+            gs.levelData = tempLevelData;
+
+            gs.isRenewPersonBuilder = true;
+
+            gs.personDataList.add(PersonData.fromJson({
+              "x": j,
+              "y": i,
+              "idx": levelData.map[i][j] - 100 - 1,
+              "count": levelData.map[i][j] - 100,
+              "hash": getRandString(15),
+              "isPlayer": true,
+            }));
+
+            print(gs.personDataList);
+
+            gs.notify();
+
+            gs.isFiveAll();
+
+            break;
+          case MapInstance.personObject:
+            if (tempLevelData.map[i][j] >= 4) {
+              break;
+            }
+
+            if (tempLevelData.map[i][j] == 0) {
+              tempLevelData.map[i][j] = 1;
+            } else {
+              tempLevelData.map[i][j] += 1;
+            }
+            gs.levelData = tempLevelData;
+
+            gs.isRenewPersonBuilder = true;
+
+            gs.personDataList.add(PersonData.fromJson({
+              "x": j,
+              "y": i,
+              "idx": levelData.map[i][j] - 1,
+              "count": levelData.map[i][j],
+              "hash": getRandString(15),
+              "isPlayer": false,
+            }));
+
+            print(gs.personDataList);
+
+            gs.notify();
+
+            gs.isFiveAll();
+            break;
+          case MapInstance.goalObject:
+            int cnt = 0;
+            for (int i = 0; i < tempLevelData.mapHeight; i++) {
+              for (int j = 0; j < tempLevelData.mapWidth; j++) {
+                if (tempLevelData.map[i][j] == 999999) {
+                  cnt += 1;
+                }
+              }
+            }
+            if (cnt >= 1) {
+              showCustomToast("목적지는 최대 1개까지 놓을 수 있습니다.", ToastType.small);
+              break;
+            }
+
+            tempLevelData.map[i][j] = 999999;
+            gs.levelData = tempLevelData;
+            gs.goalTile = targetTile;
+            break;
+        }
+
+        gs.updateEditAvailableTile();
+      }
+    }
+
+    for (int i = 0; i < levelData.mapHeight; i++) {
+      for (int j = 0; j < levelData.mapWidth; j++) {
         Path path = new Path();
         List<Offset> points = [
           tileCornerOffsetList[i][j],
@@ -470,21 +594,30 @@ class MapPainter extends CustomPainter {
         ];
         path.addPolygon(points, true);
 
-        myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
-          if (isSample) {
-            return;
+        if (levelData.map[i][j] == -1) {
+          if (gs.isEditMode) {
+            Paint transparentPaint = Paint()
+              ..style = PaintingStyle.fill
+              ..color = Colors.transparent;
+
+            Paint greyBorderPaint = Paint()
+              ..style = PaintingStyle.stroke
+              ..color = Colors.grey;
+
+            myCanvas.drawPath(
+              path,
+              gs.selectedMapInstance == MapInstance.blockTile ? greyBorderPaint : transparentPaint,
+              onTapDown: (x) {
+                onTileTapDownAction(i, j);
+              },
+            );
           }
 
-          // gs.movePerson(x:j, y:i, d : Direction(-1,0));
-          if (gs.selectMode == SelectMode.normal) {
-            gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
-          } else if (gs.selectMode == SelectMode.move) {
-            // print("!@#!@#");
-            gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personMove);
-          } else if (gs.selectMode == SelectMode.itemTargetSelect) {
-            // print("!@#!@#");
-            gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.itemTargetSelect);
-          }
+          continue;
+        }
+
+        myCanvas.drawPath(path, tileFillPaint, onTapDown: (x) {
+          onTileTapDownAction(i, j);
         });
         canvas.drawPath(
           path,
@@ -500,14 +633,24 @@ class MapPainter extends CustomPainter {
   MapPainter({this.levelData, this.tileCornerOffsetList, this.context, this.isSample = false});
 }
 
-List<Widget> personBuilder({BuildContext context}) {
-  List<PersonData> personDataList = context.select((GlobalStatus gs) => gs.personDataList);
+List<Widget> personBuilder({BuildContext context, List<PersonData> pdl}) {
+  print("what?");
+
+  List<dynamic> personDataList;
+  if (pdl != null) {
+    personDataList = pdl;
+  }
+  // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  else {
+    personDataList = context.select((GlobalStatus gs) => gs.personDataList);
+  }
+  // List<dynamic> personDataList = gs.personDataList;
   // = gs.personDataList;
 
   if (personDataList == null) {
-    return [Container()];
+    return [Container(), Container()];
   }
-
+  print(personDataList.length);
   return personDataList.map((x) {
     return Person(
       hash: x.hash,

@@ -49,6 +49,9 @@ class _GoalState extends State<Goal> {
 
     GlobalStatus gs = context.watch<GlobalStatus>();
 
+    if(gs.goalTile == null){
+      return Container();
+    }
 
     setState(() {
 

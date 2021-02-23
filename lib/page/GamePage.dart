@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
@@ -117,8 +118,86 @@ class _GamePageState extends State<GamePage> {
         return true;
       },
       child: Container(
-        child: GameMap(levelData: _currentLevelData,),
+        child: Stack(children: [
+
+          utilButtonContainerBuilder(context: context),
+          GameMap(levelData: _currentLevelData,)]),
       ),
     );
   }
+}
+
+Widget utilButtonContainerBuilder({BuildContext context}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context);
+  return Positioned(
+    // right: 20,
+    top: 10 + MediaQuery.of(context).padding.top,
+    child: Container(
+        width: gs.deviceSize.width,
+        padding: EdgeInsets.symmetric(horizontal: 0),
+        decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+              margin: EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(
+                  color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+              child: RichText(
+                text: TextSpan(
+                  // text:
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(
+                        text: ' ',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(
+                        text: gs.moveCount.toString(),
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
+                    TextSpan(
+                        text: ' ',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                    TextSpan(
+                        text: '이동',
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(right: 10),
+              child: Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      // Navigator.of(context).pop();
+                      moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                      decoration: BoxDecoration(
+                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Icon(Icons.replay),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      showPauseDialog(context);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                      decoration: BoxDecoration(
+                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Icon(Icons.reorder),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        )),
+  );
 }

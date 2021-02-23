@@ -47,7 +47,7 @@ class HighlightTile {
     }else if (highlightType == HighlightTile.selectable) {
       paint = Paint();
       paint.style = PaintingStyle.fill;
-      paint.color = Colors.lightBlueAccent.withOpacity(0.5);
+      paint.color = Colors.lightBlueAccent.withOpacity(0.7);
     }else if (highlightType == HighlightTile.isolated) {
       paint = Paint();
       paint.style = PaintingStyle.fill;
