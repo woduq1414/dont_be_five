@@ -1,12 +1,16 @@
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/func.dart';
+import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/common/route.dart';
+import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dont_be_five/page/LevelSelectPage.dart';
+import 'package:dont_be_five/page/MapEditPage.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
+import 'package:dont_be_five/widget/Toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
@@ -42,10 +46,13 @@ YYDialog showGoalDialog(BuildContext context) {
               children: <Widget>[
                 Material(
                     color: Colors.transparent,
-                    child: Text(
+                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ? Text(
                       "LEVEL ${level.toString()}",
                       style: TextStyle(fontSize: 35),
-                    )),
+                    ) :Text(
+                      "CUSTOM LEVEL",
+                      style: TextStyle(fontSize: 27),
+                    ) ),
                 Material(
                     color: Colors.transparent,
                     child: Text(
@@ -59,14 +66,17 @@ YYDialog showGoalDialog(BuildContext context) {
                 SizedBox(
                   height: 15,
                 ),
-                Row(
+                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ?  Row(
                   children: <Widget>[
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            FadeRoute(page: LevelSelectPage()),
+                            FadeRoute(
+                                page: LevelSelectPage(
+                                  page: (level - 1) ~/ 12,
+                                )),
                           );
                         },
                         child: Container(
@@ -93,7 +103,40 @@ YYDialog showGoalDialog(BuildContext context) {
                       ),
                     ),
                   ],
-                ),
+                ) :
+                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ? Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          backToEditPage(context: context);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                color: Color.fromRGBO(200, 200, 200, 0.8)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.arrow_back, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("수정 화면으로",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                ) : Container(),
+
                 SizedBox(
                   height: 10,
                 ),
@@ -103,7 +146,15 @@ YYDialog showGoalDialog(BuildContext context) {
                       child: GestureDetector(
                         onTap: () {
                           // yy.dismiss();
-                          moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+
+                          if(gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY){
+                            moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+
+                          }else{
+                            moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.tempCustomLevelData);
+                          }
+
+
                         },
                         child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
@@ -133,6 +184,41 @@ YYDialog showGoalDialog(BuildContext context) {
                 SizedBox(
                   height: 10,
                 ),
+                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ?
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // yy.dismiss();
+
+                         publishCustomLevel(context : context);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)), color: primaryYellow.withOpacity(0.8)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.arrow_forward, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("공유 하기",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                )
+                    :
                 Row(
                   children: <Widget>[
                     Expanded(
@@ -181,7 +267,10 @@ YYDialog showGoalDialog(BuildContext context) {
 YYDialog showPauseDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
-  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo();
+
+  GameMode currentGameMode = gs.currentGameMode;
+
+  // Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo();
   var yy = YYDialog();
 
   return yy.build(context)
@@ -202,10 +291,13 @@ YYDialog showPauseDialog(BuildContext context) {
               children: <Widget>[
                 Material(
                     color: Colors.transparent,
-                    child: Text(
+                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ? Text(
                       "LEVEL ${level.toString()}",
                       style: TextStyle(fontSize: 35),
-                    )),
+                    ) :Text(
+                      "CUSTOM LEVEL",
+                      style: TextStyle(fontSize: 27),
+                    ) ),
                 SizedBox(
                   height: 15,
                 ),
@@ -213,7 +305,7 @@ YYDialog showPauseDialog(BuildContext context) {
                 SizedBox(
                   height: 15,
                 ),
-                Row(
+                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ?  Row(
                   children: <Widget>[
                     Expanded(
                       child: GestureDetector(
@@ -222,8 +314,8 @@ YYDialog showPauseDialog(BuildContext context) {
                             context,
                             FadeRoute(
                                 page: LevelSelectPage(
-                              page: (level - 1) ~/ 12,
-                            )),
+                                  page: (level - 1) ~/ 12,
+                                )),
                           );
                         },
                         child: Container(
@@ -250,7 +342,40 @@ YYDialog showPauseDialog(BuildContext context) {
                       ),
                     ),
                   ],
-                ),
+                ) :
+                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ? Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          backToEditPage(context: context);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                color: Color.fromRGBO(200, 200, 200, 0.8)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.arrow_back, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("수정 화면으로",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                ) : Container(),
+
                 SizedBox(
                   height: 15,
                 ),
@@ -322,7 +447,7 @@ YYDialog showPauseDialog(BuildContext context) {
 Widget buildStarInfo(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
-  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo();
+  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo(psc : gs.levelData.pStarCondition);
   return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: levelStarInfo.keys.map<Widget>((cond) {
@@ -690,4 +815,16 @@ void showCustomConfirmDialog(
       );
     },
   );
+}
+
+void backToEditPage({BuildContext context}){
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  Navigator.pop(context);
+  // Navigator.pop(context);
+  Navigator.pushReplacement(
+    context,
+    FadeRoute(page: MapEditPage(tempLevelData : gs.tempCustomLevelData)),
+  );
+
+  return;
 }

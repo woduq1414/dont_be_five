@@ -4,6 +4,7 @@ import 'package:games_services/games_services.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/Counter.dart';
 import 'package:dont_be_five/data/Direction.dart';
+import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/data/HighlightTile.dart';
 import 'package:dont_be_five/data/AchievementData.dart';
 import 'package:dont_be_five/data/ItemData.dart';
@@ -93,14 +94,29 @@ class GlobalStatus with ChangeNotifier {
     _deviceSize = value;
   }
 
-  bool _isEditMode = false;
-
+  bool _isEditMode;
 
   bool get isEditMode => _isEditMode;
 
   set isEditMode(bool value) {
     _isEditMode = value;
+
+    if (value == false) {
+      // throw "no";
+    }
+
+    print("oh!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    print(value);
+    // notify();
   } ///////////////// IN GAME MAP
+
+  GameMode _currentGameMode;
+
+  GameMode get currentGameMode => _currentGameMode;
+
+  set currentGameMode(GameMode value) {
+    _currentGameMode = value;
+  }
 
   Counter _counter;
 
@@ -126,11 +142,11 @@ class GlobalStatus with ChangeNotifier {
     _moveCount = value;
   }
 
-  bool _isGameCleared = false;
+  bool _isGameCleared;
 
-  bool get isGameEnd => _isGameCleared;
+  bool get isGameCleared => _isGameCleared;
 
-  set isGameEnd(bool value) {
+  set isGameCleared(bool value) {
     _isGameCleared = value;
   }
 
@@ -166,7 +182,6 @@ class GlobalStatus with ChangeNotifier {
     _isDiagonalMove = value;
   }
 
-
   TileData _goalTile;
 
   TileData get goalTile => _goalTile;
@@ -199,11 +214,11 @@ class GlobalStatus with ChangeNotifier {
     _highlightTileMap = value;
   }
 
-  List<dynamic> _personDataList;
+  List<PersonData> _personDataList;
 
-  List<dynamic> get personDataList => _personDataList;
+  List<PersonData> get personDataList => _personDataList;
 
-  set personDataList(List<dynamic> value) {
+  set personDataList(List<PersonData> value) {
     _personDataList = value;
   }
 
@@ -237,11 +252,7 @@ class GlobalStatus with ChangeNotifier {
     notifyListeners();
   }
 
-  bool get isGameCleared => _isGameCleared;
 
-  set isGameCleared(bool value) {
-    _isGameCleared = value;
-  }
 
   Map<String, List<TileData>> get highlightTileMap => _highlightTileMap;
 
@@ -249,9 +260,7 @@ class GlobalStatus with ChangeNotifier {
     _highlightTileMap = value;
   }
 
-
   ///////////////// IN GAME MAP
-
 
   ///////////////// IN EDIT MAP
 
@@ -262,14 +271,10 @@ class GlobalStatus with ChangeNotifier {
   set selectedMapInstance(MapInstance value) {
     _selectedMapInstance = value;
 
-
     updateEditAvailableTile();
-
-
   }
 
   bool _isRenewPersonBuilder = false;
-
 
   bool get isRenewPersonBuilder => _isRenewPersonBuilder;
 
@@ -277,29 +282,97 @@ class GlobalStatus with ChangeNotifier {
     _isRenewPersonBuilder = value;
   }
 
-  //////////////// IN EDIT MAP
+  LevelData _tempCustomLevelData;
 
-  void notify(){
-    notifyListeners();
+  LevelData get tempCustomLevelData => _tempCustomLevelData;
+
+  set tempCustomLevelData(LevelData value) {
+    _tempCustomLevelData = value;
+  }
+
+  bool _isCustomLevelTestCompleted = false;
+
+
+  bool get isCustomLevelTestCompleted => _isCustomLevelTestCompleted;
+
+  set isCustomLevelTestCompleted(bool value) {
+    _isCustomLevelTestCompleted = value;
+  }
+
+  LevelData _testedLevelData;
+
+
+  LevelData get testedLevelData => _testedLevelData;
+
+  set testedLevelData(LevelData value) {
+    _testedLevelData = value;
+  } //////////////// IN EDIT MAP
+
+  List<String> validateCustomLevel({LevelData customLevelData}){
+
+    int playerCount = 0;
+    int goalCount = 0;
+
+    List<String> result = [];
+
+    for(int i = 0 ; i < customLevelData.mapHeight; i++){
+      for(int j = 0 ; j < customLevelData.mapWidth; j++){
+        int tileValue = customLevelData.map[i][j];
+        if(101 <= tileValue && tileValue <= 104){
+          playerCount += tileValue - 100;
+        }
+        if(999999 == tileValue){
+          goalCount += 1;
+        }
+      }
+    }
+
+    if(playerCount == 0){
+      result.add("플레이어는 1개 이상이어야 합니다.");
+    }
+    if(goalCount != 1){
+      result.add("목적지는 1개 존재해야 합니다.");
+    }
+    if(isFiveAll()){
+      result.add("<5인 이상 집합 금지>에 어긋난 타일이 있는 지 확인해주세요.");
+    }
+    return result;
+
   }
 
 
-  void updateEditAvailableTile(){
+
+  int getEditModeItemCount({LevelData ld, String itemName}) {
+    if (ld.items == null) {
+      return 0;
+    }
+    if (ld.items.containsKey(itemName)) {
+      return ld.items[itemName];
+    } else {
+      return 0;
+    }
+  }
+
+  void notify() {
+    notifyListeners();
+  }
+
+  void updateEditAvailableTile() {
     _highlightTileMap[HighlightTile.selectable] = [];
-    switch(selectedMapInstance){
+    switch (selectedMapInstance) {
       case MapInstance.blankTile:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-           if(_levelData.map[i][j] >= 0){
-             _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
-           }
+            if (_levelData.map[i][j] >= 0) {
+              _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
+            }
           }
         }
         break;
       case MapInstance.blockTile:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] == -1){
+            if (_levelData.map[i][j] == -1) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
@@ -308,7 +381,7 @@ class GlobalStatus with ChangeNotifier {
       case MapInstance.isolatedTile:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] != -1 ){
+            if (_levelData.map[i][j] != -1) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
@@ -318,7 +391,7 @@ class GlobalStatus with ChangeNotifier {
       case MapInstance.confinedTile:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] != -1 ){
+            if (_levelData.map[i][j] != -1) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
@@ -328,7 +401,7 @@ class GlobalStatus with ChangeNotifier {
       case MapInstance.eraserObject:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] >= 1){
+            if (_levelData.map[i][j] >= 1) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
@@ -338,46 +411,36 @@ class GlobalStatus with ChangeNotifier {
       case MapInstance.playerObject:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] == 0 ||  (_levelData.map[i][j] >= 101 && _levelData.map[i][j] <= 103)){
+            if (_levelData.map[i][j] == 0 || (_levelData.map[i][j] >= 101 && _levelData.map[i][j] <= 103)) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
         }
         break;
-
-
 
       case MapInstance.personObject:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] == 0 ||  (_levelData.map[i][j] >= 1 && _levelData.map[i][j] <= 3)){
+            if (_levelData.map[i][j] == 0 || (_levelData.map[i][j] >= 1 && _levelData.map[i][j] <= 3)) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
         }
         break;
-
-
 
       case MapInstance.goalObject:
         for (int i = 0; i < _levelData.mapHeight; i++) {
           for (int j = 0; j < _levelData.mapWidth; j++) {
-            if(_levelData.map[i][j] == 0){
+            if (_levelData.map[i][j] == 0) {
               _highlightTileMap[HighlightTile.selectable].add(TileData(x: j, y: i));
             }
           }
         }
         break;
-
     }
-
 
     notifyListeners();
   }
-
-
-
-
 
   int getLastUnlockedLevel() {
     SaveData saveData = box.get('saveData');
@@ -401,9 +464,9 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void clearProcess() async {
-    audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY);
     Map<String, dynamic> levelStarInfo = getLevelStarInfo();
-
+    print("dffddffd");
+    print(getLevelStarInfo());
     List<int> levelProcessList = getLevelProcessList();
     int originLevelStatus = levelProcessList[levelData.seq - 1];
 
@@ -507,9 +570,24 @@ class GlobalStatus with ChangeNotifier {
     print(box.get('saveData'));
   }
 
-  Map<String, dynamic> getLevelStarInfo() {
+  dynamic getLevelStarInfo({List<String> psc, bool getOnlyStr = false}) {
     Map<String, dynamic> result = {};
-    List<String> pStarCondition = levelData.pStarCondition;
+    List<String> strList = [];
+
+    List<String> pStarCondition;
+    if (psc == null) {
+      pStarCondition = levelData.pStarCondition;
+      print(pStarCondition);
+    } else {
+      pStarCondition = psc;
+    }
+
+    if(_isGameCleared){
+      print("wowclearaed");
+    }else{
+      print("nonono");
+    }
+
     for (String sc in pStarCondition) {
       bool boo = true;
 
@@ -538,44 +616,75 @@ class GlobalStatus with ChangeNotifier {
               if (_isGameCleared) {
                 boo = boo && _usedItemCountMap.values.fold(0, (p, c) => p + c) == 0;
               } else {}
-            } else if (target == "vaccine") {
-              str += "백신 사용하지 않고 ";
-              if (_isGameCleared) {
-                boo = boo && _usedItemCountMap[ItemData.vaccine] == 0;
-              } else {}
-            } else if (target == "isolate") {
-              str += "자가격리 사용하지 않고 ";
-              if (_isGameCleared) {
-                boo = boo && _usedItemCountMap[ItemData.isolate] == 0;
-              } else {}
-            } else if (target == "release") {
-              str += "격리해제 사용하지 않고 ";
-              if (_isGameCleared) {
-                boo = boo && _usedItemCountMap[ItemData.release] == 0;
-              } else {}
+            }
+
+            List<ItemData> itemList = [ItemData.isolate, ItemData.release, ItemData.vaccine, ItemData.diagonal];
+            for (ItemData item in itemList) {
+              if (target == item.name) {
+                str += "${item.caption} 사용하지 않고 ";
+                if (_isGameCleared) {
+                  boo = boo && _usedItemCountMap[item] == 0;
+                } else {}
+              }
             }
 
             break;
+
+          case "limit":
+            String target = cond.split(" ")[1];
+            int num = int.parse(cond.split(" ")[2]);
+
+            if (target == "item") {
+              str += "아이템 ${num}개 이하로 사용하고 ";
+              if (_isGameCleared) {
+                boo = boo && _usedItemCountMap.values.fold(0, (p, c) => p + c) <= num;
+              } else {}
+            }
+
+            List<ItemData> itemList = [ItemData.isolate, ItemData.release, ItemData.vaccine, ItemData.diagonal];
+            for (ItemData item in itemList) {
+              if (target == item.name) {
+                str += "${item.caption} ${num}개 이하로 사용하고 ";
+                if (_isGameCleared) {
+                  boo = boo && _usedItemCountMap[item] <= num;
+                } else {}
+              }
+            }
         }
       }
 
       result[str] = boo;
+
+
+      strList.add(str);
     }
 
-    if (!_isGameCleared) {
-      List<int> levelProcessList = getLevelProcessList();
-      int originLevelStatus = levelProcessList[levelData.seq - 1];
+    print(result);
+    print(_isGameCleared);
 
-      List<bool> havingStar = [];
-      havingStar.add(originLevelStatus % 2 == 1);
-      havingStar.add(originLevelStatus ~/ 2 % 2 == 1);
-      havingStar.add(originLevelStatus ~/ 4 % 2 == 1);
-      print(havingStar);
-      print(originLevelStatus / 2);
-      for (int i = 0; i < result.keys.length; i++) {
-        result[result.keys.toList()[i]] = havingStar[i];
+
+    if (currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY) {
+      if (!_isGameCleared) {
+        List<int> levelProcessList = getLevelProcessList();
+        int originLevelStatus = levelProcessList[levelData.seq - 1];
+
+        List<bool> havingStar = [];
+        havingStar.add(originLevelStatus % 2 == 1);
+        havingStar.add(originLevelStatus ~/ 2 % 2 == 1);
+        havingStar.add(originLevelStatus ~/ 4 % 2 == 1);
+        print(havingStar);
+        print(originLevelStatus / 2);
+        for (int i = 0; i < result.keys.length; i++) {
+          result[result.keys.toList()[i]] = havingStar[i];
+        }
       }
     }
+
+    if (getOnlyStr == true) {
+      print("sldfjlsdjfklsdkflsdklf");
+      return strList;
+    }
+
     return result;
   }
 
@@ -896,6 +1005,7 @@ class GlobalStatus with ChangeNotifier {
   }
 
   GlobalStatus() {
+    isEditMode = false;
     init();
   }
 
@@ -931,6 +1041,9 @@ class GlobalStatus with ChangeNotifier {
   }
 
   void initLevel() {
+
+
+
     _counter = Counter();
 
     _isDiagonalMove = false;
@@ -1048,11 +1161,30 @@ class GlobalStatus with ChangeNotifier {
 
       if (isGoal()) {
         print("goal!");
+
         Future.delayed(const Duration(milliseconds: 350), () {
           runVibrate(duration: 1000);
-          _isGameCleared = true;
 
-          clearProcess();
+          _isGameCleared = true;
+          print("muyaho!");
+          audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY);
+          if (currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY) {
+            clearProcess();
+          }else if(currentGameMode == GameMode.CUSTOM_LEVEL_EDITING){
+            Map<String, dynamic> levelStarInfo = getLevelStarInfo();
+            bool f = true;
+            for(String k in levelStarInfo.keys){
+              f = f & levelStarInfo[k];
+            }
+            if(f == true){
+              testedLevelData = _tempCustomLevelData.clone();
+
+              print(_tempCustomLevelData.toJson());
+
+              isCustomLevelTestCompleted = true;
+            }
+
+          }
 
           notifyListeners();
         });
@@ -1087,17 +1219,13 @@ class GlobalStatus with ChangeNotifier {
     for (int i = 0; i < _levelData.mapHeight; i++) {
       for (int j = 0; j < _levelData.mapWidth; j++) {
         TileData destTile = TileData(x: j, y: i);
-        fiveFlag = fiveFlag & isTargetTileFive(destTile: destTile, isHighlight: true);
+        fiveFlag = fiveFlag | isTargetTileFive(destTile: destTile, isHighlight: true);
       }
-
-
-
     }
     return fiveFlag;
   }
 
-
-  bool isTargetTileFive({TileData destTile, bool isHighlight}){
+  bool isTargetTileFive({TileData destTile, bool isHighlight}) {
     int cnt = 0;
 
     if (isSelectableTile(tile: destTile, selectMode: SelectMode.move)) {
@@ -1117,7 +1245,6 @@ class GlobalStatus with ChangeNotifier {
       if (cnt >= 5) {
         print("five!!!!!!!!!!!1");
 
-
         _highlightTileMap[HighlightTile.five].add(destTile);
         for (Direction dd in [Direction.down, Direction.left, Direction.right, Direction.up]) {
           TileData destTile_2 = TileData(x: destTile.x + dd.x, y: destTile.y + dd.y);
@@ -1126,15 +1253,13 @@ class GlobalStatus with ChangeNotifier {
           }
         }
         return true;
-      }else{
+      } else {
         return false;
       }
-    }else{
+    } else {
       return false;
     }
   }
-
-
 
   bool isAroundTileFive({TileData tile}) {
     _highlightTileMap[HighlightTile.five] = [];
@@ -1142,9 +1267,9 @@ class GlobalStatus with ChangeNotifier {
     bool fiveFlag = false;
     for (Direction d in [Direction(0, 0), Direction.down, Direction.left, Direction.right, Direction.up]) {
       TileData destTile = TileData(x: tile.x + d.x, y: tile.y + d.y);
-      fiveFlag = fiveFlag & isTargetTileFive(destTile: destTile, isHighlight: true);
+      fiveFlag = fiveFlag | isTargetTileFive(destTile: destTile, isHighlight: true);
     }
-    if(!isEditMode){
+    if (!isEditMode) {
       Future.delayed(const Duration(milliseconds: 350), () {
         _highlightTileMap[HighlightTile.five] = [];
       });
@@ -1158,8 +1283,6 @@ class GlobalStatus with ChangeNotifier {
       }
     }
 
-
-
     return fiveFlag;
   }
 
@@ -1168,8 +1291,6 @@ class GlobalStatus with ChangeNotifier {
       Vibration.vibrate(duration: duration);
     }
   }
-
-
 
 // void runSound({Duration duration}){
 //   if(_isVibrate == true){

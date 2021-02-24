@@ -14,7 +14,11 @@ class GamePage extends StatefulWidget {
   int level;
   bool isSkipTutorial;
 
-  GamePage({this.level, this.isSkipTutorial});
+  bool isCustomMap;
+  LevelData customLevelData;
+
+
+  GamePage({this.level, this.isSkipTutorial, this.isCustomMap, this.customLevelData});
 
   @override
   _GamePageState createState() => _GamePageState(level);
@@ -25,7 +29,8 @@ class _GamePageState extends State<GamePage> {
   LevelData _currentLevelData;
   bool _isSkipTutorial;
   bool _isShowedTutorial = false;
-
+  bool isCustomMap;
+  LevelData customLevelData;
 
   _GamePageState(this.level);
 
@@ -34,12 +39,17 @@ class _GamePageState extends State<GamePage> {
     // TODO: implement initState
 
 
+
+
     setState(() {
+      isCustomMap = widget.isCustomMap != null ? widget.isCustomMap : false;
+      customLevelData = widget.customLevelData;
+
       _isSkipTutorial = widget.isSkipTutorial;
     });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-
-
+      GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+      gs.isEditMode = false;
       if(!_isSkipTutorial){
         if(!_isShowedTutorial){
           setState(() {
@@ -86,6 +96,13 @@ class _GamePageState extends State<GamePage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
 
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
@@ -94,15 +111,23 @@ class _GamePageState extends State<GamePage> {
 
     setState(() {
       if (levelData == null) {
-        // List<LevelData> levelDataList =context.select((GlobalStatus gs) => gs.levelDataList);
-        GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-        List<LevelData> levelDataList = gs.levelDataList;
 
-        if (levelDataList != null) {
+        if(isCustomMap == false){
+          // List<LevelData> levelDataList =context.select((GlobalStatus gs) => gs.levelDataList);
+          GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+          List<LevelData> levelDataList = gs.levelDataList;
 
-          _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
+          if (levelDataList != null) {
 
-        } else {}
+            _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
+
+          } else {}
+        }else{
+          _currentLevelData = customLevelData;
+        }
+
+
+
       }
     });
 
@@ -110,7 +135,7 @@ class _GamePageState extends State<GamePage> {
     return WillPopScope(
       onWillPop: () async{
 
-        if(!gs.isGameEnd){
+        if(!gs.isGameCleared){
           showPauseDialog(context);
         }
 
@@ -119,85 +144,93 @@ class _GamePageState extends State<GamePage> {
       },
       child: Container(
         child: Stack(children: [
-
+          GameMap(levelData: _currentLevelData,),
           utilButtonContainerBuilder(context: context),
-          GameMap(levelData: _currentLevelData,)]),
+          ]),
       ),
+    );
+  }
+
+
+  Widget utilButtonContainerBuilder({BuildContext context}) {
+    GlobalStatus gs = Provider.of<GlobalStatus>(context);
+    return Positioned(
+      // right: 20,
+      top: 10 + MediaQuery.of(context).padding.top,
+      child: Container(
+          width: gs.deviceSize.width,
+          padding: EdgeInsets.symmetric(horizontal: 0),
+          decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                margin: EdgeInsets.only(left: 10),
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                child: RichText(
+                  text: TextSpan(
+                    // text:
+                    style: DefaultTextStyle.of(context).style,
+                    children: <TextSpan>[
+                      TextSpan(
+                          text: ' ',
+                          style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                      TextSpan(
+                          text: gs.moveCount.toString(),
+                          style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
+                      TextSpan(
+                          text: ' ',
+                          style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
+                      TextSpan(
+                          text: '이동',
+                          style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Row(
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () {
+                        // Navigator.of(context).pop();
+
+                        if(isCustomMap){
+                          moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: customLevelData);
+                        }else{
+                          moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+                        }
+
+                      },
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                        decoration: BoxDecoration(
+                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                        child: Icon(Icons.replay),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        showPauseDialog(context);
+                      },
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                        decoration: BoxDecoration(
+                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+                        child: Icon(Icons.reorder),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          )),
     );
   }
 }
 
-Widget utilButtonContainerBuilder({BuildContext context}) {
-  GlobalStatus gs = Provider.of<GlobalStatus>(context);
-  return Positioned(
-    // right: 20,
-    top: 10 + MediaQuery.of(context).padding.top,
-    child: Container(
-        width: gs.deviceSize.width,
-        padding: EdgeInsets.symmetric(horizontal: 0),
-        decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-              margin: EdgeInsets.only(left: 10),
-              decoration: BoxDecoration(
-                  color: Color.fromRGBO(225, 225, 225, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-              child: RichText(
-                text: TextSpan(
-                  // text:
-                  style: DefaultTextStyle.of(context).style,
-                  children: <TextSpan>[
-                    TextSpan(
-                        text: ' ',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(
-                        text: gs.moveCount.toString(),
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s4())),
-                    TextSpan(
-                        text: ' ',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s8())),
-                    TextSpan(
-                        text: '이동',
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.none, fontSize: gs.s5())),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(right: 10),
-              child: Row(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () {
-                      // Navigator.of(context).pop();
-                      moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: Icon(Icons.replay),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      showPauseDialog(context);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2),
-                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: Icon(Icons.reorder),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        )),
-  );
-}

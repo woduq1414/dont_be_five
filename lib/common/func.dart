@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
+import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/data/LevelDataJson.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
@@ -21,8 +22,18 @@ String getRandString(int len) {
   return base64UrlEncode(values);
 }
 
-void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false}) async {
+void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false, bool isCustomLevel, LevelData customLevelData}) async {
+
+
+
   GlobalStatus gs = context.read<GlobalStatus>();
+
+
+  if(isCustomLevel == true){
+    gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
+  }else{
+    gs.currentGameMode = GameMode.ORIGINAL_LEVEL_PLAY;
+  }
   // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
 
 
@@ -44,11 +55,16 @@ void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false})
 
   gs.context = context;
 
-  try{
-    _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
-  }catch(e){
-    showCustomToast("곧 업데이트 됩니다! 감사합니다!", ToastType.small);
-    return;
+  if(isCustomLevel != true){
+    try{
+      _currentLevelData = levelDataList.firstWhere((el) => el.seq == level);
+    }catch(e){
+      showCustomToast("곧 업데이트 됩니다! 감사합니다!", ToastType.small);
+      return;
+    }
+
+  }else{
+    _currentLevelData = customLevelData;
   }
 
 
@@ -77,14 +93,18 @@ void moveToLevel({int level, BuildContext context, bool isSkipTutorial = false})
 
   Navigator.pushReplacement(
     context,
-    FadeRoute(page: GamePage(level: level, isSkipTutorial : isSkipTutorial)),
+    FadeRoute(page: GamePage(level: level, isSkipTutorial : isSkipTutorial, isCustomMap : isCustomLevel, customLevelData : customLevelData)),
   );
 }
 
 
 
-List<dynamic> calcTileCornerOffsetList({LevelData levelData, BuildContext context}) {
+List<dynamic> calcTileCornerOffsetList({LevelData levelData, BuildContext context, Offset translationOffset}) {
 
+
+  if(translationOffset == null){
+    translationOffset = Offset(0,0);
+  }
 
 
   double deviceWidth;
@@ -127,6 +147,13 @@ List<dynamic> calcTileCornerOffsetList({LevelData levelData, BuildContext contex
   leftBottomCorner = Offset(0, deviceHeight / 2 + pH / 2);
   rightBottomCorner = Offset(pW, deviceHeight / 2 + pH / 2);
 
+
+  leftTopCorner = Offset(leftTopCorner.dx + translationOffset.dx, leftTopCorner.dy + translationOffset.dy);
+  rightTopCorner = Offset(rightTopCorner.dx + translationOffset.dx, rightTopCorner.dy + translationOffset.dy);
+  leftBottomCorner = Offset(leftBottomCorner.dx + translationOffset.dx, leftBottomCorner.dy + translationOffset.dy);
+  rightBottomCorner = Offset(rightBottomCorner.dx + translationOffset.dx, rightBottomCorner.dy + translationOffset.dy);
+
+
   for (int i = 0; i < levelData.mapHeight + 1; i++) {
     _tileCornerOffsetList.add([]);
     for (int j = 0; j < levelData.mapWidth + 1; j++) {
@@ -168,4 +195,16 @@ List<dynamic> makePersonDataList({LevelData levelData, BuildContext context}) {
   }
 
   return personDataList;
+}
+
+void publishCustomLevel({BuildContext context}){
+
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+
+
+  if(gs.testedLevelData != null && gs.tempCustomLevelData != null && gs.tempCustomLevelData.toJson().toString() == gs.testedLevelData.toJson().toString()){
+    showCustomToast("게시 가능(아직 안 만듦)", ToastType.small);
+  }else{
+    showCustomToast("아직 게시 불가능(3별 통과해야함)", ToastType.small);
+  }
 }

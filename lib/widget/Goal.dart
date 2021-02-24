@@ -67,21 +67,22 @@ class _GoalState extends State<Goal> {
       print("rebuild!!!!!!!");
 
       // tileCornerOffsetList =
-
-      _width = 27;
-      _height = 50;
-
+      //
+      // _width = 27;
+      // _height = 50;
+      _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 2.5;
+      _height = _width * 1.85;
 
       _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 ;
       _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2;
     });
 
 
-    return AnimatedPositioned(
+    return Positioned(
       top: _dy - _height * 0.5,
       left: _dx - _width * 0.5,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeIn,
+      // duration: Duration(milliseconds: 300),
+      // curve: Curves.easeIn,
       child: IgnorePointer(
         child: Image.asset(
           ImagePath.goal, width: _width, height: _height,

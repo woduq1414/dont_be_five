@@ -7,6 +7,7 @@ import 'package:dont_be_five/common/firebase.dart';
 import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
+import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
@@ -29,7 +30,7 @@ import 'package:games_services/games_services.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
 
-import 'GamePage.dart';
+// import 'GamePage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -123,6 +124,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+    print(gs);
     gs.deviceSize = MediaQuery.of(context).size;
     //
 
@@ -252,7 +254,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       onTap: () {
                         // moveToLevel(level: 23 , context: context);
                         // return;
-
+                        gs.testedLevelData = null;
+                        gs.isEditMode = true;
+                        gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
+                        gs.notify();
+                        print(gs.isEditMode);
                         Navigator.pushReplacement(
                           context,
                           FadeRoute(page: MapEditPage()),

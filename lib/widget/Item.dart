@@ -66,6 +66,9 @@ class _ItemState extends State<Item> with TickerProviderStateMixin {
       _isSelected = gs.selectedItem == item;
     });
 
+
+
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 5),
       child: GestureDetector(

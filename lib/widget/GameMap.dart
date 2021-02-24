@@ -84,22 +84,30 @@ class _GameMapState extends State<GameMap> {
       levelData = gs.levelData;
       _tileCornerOffsetList = gs.tileCornerOffsetList;
     });
-
-    if (_cachedPersonBuilder == null || (gs.isEditMode && gs.isRenewPersonBuilder)) {
+    if (gs.isEditMode && gs.isRenewPersonBuilder) {
       setState(() {
         _cachedPersonBuilder = personBuilder(context: context);
+        gs.isRenewPersonBuilder = false;
       });
-
-      gs.isRenewPersonBuilder = false;
+    }
+    if (_cachedPersonBuilder.length == 0 && gs.isEditMode == false) {
+      // print("hello;");
+      _cachedPersonBuilder = personBuilder(context: context);
     }
 
-    print("rebuild");
+    // print("rebuild");
+    // print(_cachedPersonBuilder);
 
-    if (gs.isGameEnd && _isGoalDialogShowing == false) {
+    if (gs.isGameCleared && _isGoalDialogShowing == false) {
+      gs.isGameCleared = false;
+
       _isGoalDialogShowing = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showGoalDialog(context);
+        gs.isGameCleared = true;
 
+        showGoalDialog(context);
+        gs.isGameCleared = false;
+        print("SDDDDDDDDDDDDDDDDDDDDDDDDDDd");
         if (levelData.seq == 24) {
           if (gs.isRateDialogShowed == false) {
             gs.isRateDialogShowed = true;
@@ -122,8 +130,8 @@ class _GameMapState extends State<GameMap> {
         } else {}
       });
     }
-    print("sdf");
-    print(_cachedPersonBuilder);
+    // print("sdf");
+    // print(_cachedPersonBuilder);
     return Container(
         color: Colors.white,
         child: Stack(
@@ -144,7 +152,7 @@ class _GameMapState extends State<GameMap> {
               painter: HighlightTilePainter(tileCornerOffsetList: _tileCornerOffsetList, context: context),
             ),
             Goal(),
-            ..._cachedPersonBuilder,
+            ... gs.isEditMode ? personBuilder(context: context) :  _cachedPersonBuilder,
             itemContainerBuilder(context: context)
           ],
         ));
@@ -153,7 +161,9 @@ class _GameMapState extends State<GameMap> {
 
 Widget itemContainerBuilder({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context);
-
+  if (gs.isEditMode) {
+    return Container();
+  }
   if (gs.levelData.items.length == 0) {
     return Container();
   }
@@ -386,12 +396,16 @@ class MapPainter extends CustomPainter {
     }
 
     void onTileTapDownAction(int i, int j) {
+
+      print(gs.isEditMode);
+
       if (isSample) {
         return;
       }
 
       // gs.movePerson(x:j, y:i, d : Direction(-1,0));
       if (gs.isEditMode == false) {
+
         if (gs.selectMode == SelectMode.normal) {
           gs.selectTile(tile: TileData(x: j, y: i), selectType: SelectType.personSelect);
         } else if (gs.selectMode == SelectMode.move) {
@@ -418,6 +432,10 @@ class MapPainter extends CustomPainter {
 
         switch (gs.selectedMapInstance) {
           case MapInstance.blankTile:
+            if (tempLevelData.map[i][j] == 999999) {
+              gs.goalTile = null;
+            }
+
             tempLevelData.map[i][j] = -1;
             tempLevelData.isolated[i][j] = 0;
             gs.isolatedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
@@ -429,7 +447,10 @@ class MapPainter extends CustomPainter {
             gs.highlightTileMap[HighlightTile.confined]
                 .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
 
+            gs.personDataList.removeWhere((p) => (p.x == targetTile.x && p.y == targetTile.y));
+
             gs.levelData = tempLevelData;
+
             break;
           case MapInstance.blockTile:
             tempLevelData.map[i][j] = 0;
@@ -482,12 +503,13 @@ class MapPainter extends CustomPainter {
               }
             } else if (tempLevelData.map[i][j] == 999999) {
               tempLevelData.map[i][j] = 0;
-
               gs.goalTile = null;
             }
 
             gs.levelData = tempLevelData;
             gs.isFiveAll();
+
+            gs.isRenewPersonBuilder = true;
             // gs.notify();
             break;
 
@@ -635,26 +657,43 @@ class MapPainter extends CustomPainter {
 
 List<Widget> personBuilder({BuildContext context, List<PersonData> pdl}) {
   print("what?");
-
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   List<dynamic> personDataList;
   if (pdl != null) {
     personDataList = pdl;
-  }
-  // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-  else {
+  } else {
     personDataList = context.select((GlobalStatus gs) => gs.personDataList);
+    personDataList = personDataList.map((x) {
+      return x.clone();
+    }).toList();
   }
   // List<dynamic> personDataList = gs.personDataList;
   // = gs.personDataList;
 
   if (personDataList == null) {
+    showCustomToast("asd", ToastType.normal);
+    print("asdddddddddddddddddddddddddddddddddd");
     return [Container(), Container()];
   }
-  print(personDataList.length);
+  // print(personDataList.length);
+  // print("--------");
+  // for(var a in personDataList){
+  //
+  //   print("${a.hash} ${a.x} ${a.y}");
+  // }
+  // print("--------??");
+
+  bool isEditMode = gs.isEditMode;
   return personDataList.map((x) {
-    return Person(
-      hash: x.hash,
-    );
+    // print("${x.clone().hash} hash : ");
+
+    if (isEditMode) {
+      return personWidgetBuilder(context: context, hash: x.hash);
+    } else {
+      return Person(
+        hash: x.hash,
+      );
+    }
   }).toList();
 }
 
