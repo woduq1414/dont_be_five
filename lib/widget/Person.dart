@@ -14,6 +14,7 @@ class Person extends StatefulWidget {
   dynamic personDataList;
 
 
+
   Person({this.hash, this.personDataList});
 
   @override
@@ -35,7 +36,7 @@ class _PersonState extends State<Person> {
 
   dynamic personDataList;
   bool _isPlayer;
-  List<dynamic> _tileCornerOffsetList;
+  List<dynamic> tileCornerOffsetList;
 
   double _dx = 0;
   double _dy = 0;
@@ -61,14 +62,14 @@ class _PersonState extends State<Person> {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
     // print("rebuild?");
     // return Container();
-    return personWidgetBuilder(context: context, hash: hash);
+    return personWidgetBuilder(context: context, hash: hash, personDataList: personDataList);
 
 
   }
 }
 
 
-Widget personWidgetBuilder({BuildContext context, String hash}){
+Widget personWidgetBuilder({BuildContext context, String hash, dynamic personDataList}){
 
   int _x;
   int _y;
@@ -76,7 +77,7 @@ Widget personWidgetBuilder({BuildContext context, String hash}){
   int _count;
   LevelData _levelData;
 
-  dynamic personDataList;
+  // dynamic personDataList;
   bool _isPlayer;
   List<dynamic> _tileCornerOffsetList;
 
@@ -88,10 +89,18 @@ Widget personWidgetBuilder({BuildContext context, String hash}){
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   // print(hash);
   PersonData targetPersonData;
+
+  if(personDataList == null){
+    personDataList = gs.personDataList;
+  }
+
+  print(personDataList.length * 10);
+
+
   try{
 
     // print("${hash} fuck");
-    targetPersonData = gs.personDataList.firstWhere((el) => el.hash == hash);
+    targetPersonData = personDataList.firstWhere((el) => el.hash == hash);
 
     // targetPersonData = personDataList.clone();
     // print(targetPersonData.toJson());
@@ -115,16 +124,20 @@ Widget personWidgetBuilder({BuildContext context, String hash}){
   _isPlayer = targetPersonData.isPlayer;
 
   _levelData = gs.levelData;
+
+
   _tileCornerOffsetList = gs.tileCornerOffsetList;
   _count = gs.levelData.map[_y][_x];
 
 
 
+  double oneTileWidth = _tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx;
+  double oneTileHeight = _tileCornerOffsetList[_y+1][_x+1].dy - _tileCornerOffsetList[_y][_x].dy;
 
   // tileCornerOffsetList =
-  double r = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 5;
+  double r = min(oneTileWidth / 5, oneTileHeight / 3.4);
   if(_isPlayer == true){
-    _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 3;
+    _width = min(oneTileWidth / 3, oneTileHeight / 2.5);
     _height = _width * 1.9;
     _count -= 100;
 
@@ -140,11 +153,11 @@ Widget personWidgetBuilder({BuildContext context, String hash}){
       _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * r;
       _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * r;
     }else{
-      _dx = _tileCornerOffsetList[_y][_x].dx;
-      _dy = _tileCornerOffsetList[_y][_x].dy;
+      _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 ;
+      _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2;
     }
   }else{
-    _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 4;
+    _width = min(oneTileWidth / 3, oneTileHeight / 3.75);
     _height = _width * 1.9;
 
 
@@ -158,8 +171,8 @@ Widget personWidgetBuilder({BuildContext context, String hash}){
       _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 + cos(theta) * r;
       _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2 + sin(theta) * r;
     }else{
-      _dx = _tileCornerOffsetList[_y][_x].dx;
-      _dy = _tileCornerOffsetList[_y][_x].dy;
+      _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 ;
+      _dy = (_tileCornerOffsetList[_y][_x].dy +  _tileCornerOffsetList[_y+1][_x+1].dy) / 2;
     }
   }
 

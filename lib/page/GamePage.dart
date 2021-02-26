@@ -1,13 +1,18 @@
 import 'dart:convert';
+import 'package:dont_be_five/common/Font.dart';
+import 'package:dont_be_five/common/color.dart';
+import 'package:dont_be_five/common/firebase.dart';
 import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
+import 'package:dont_be_five/widget/Loading.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:provider/provider.dart';
 
 class GamePage extends StatefulWidget {
@@ -38,7 +43,7 @@ class _GamePageState extends State<GamePage> {
   void initState() {
     // TODO: implement initState
 
-
+    AdManager.showBanner();
 
 
     setState(() {
@@ -81,16 +86,50 @@ class _GamePageState extends State<GamePage> {
             case 37:
               showTutorialDialog(context: context, page: 10);
               break;
+
+            default:
+              showToastWidget(
+                  Container(
+                      height: 150,
+                      margin: EdgeInsets.only(top:45, left: 5, right: 5),
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+
+                      decoration: BoxDecoration(
+                          borderRadius : BorderRadius.all(Radius.circular(5)),
+                          color: Colors.white.withOpacity(0.7)
+                      ),
+                      child : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children:
+                          [0,1,2].map((x){
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                              Icon(Icons.star, color : primaryYellow,  size: gs.s3(),),
+                              SizedBox(width: 5,),
+                              Expanded(child: Text(gs.getLevelStarInfo(getOnlyStr: true)[x], style: TextStyle(fontSize: gs.s4(), fontFamily: Font.light), maxLines: 3, softWrap: true,)),
+                            ],);
+                          }).toList()
+
+                      )
+                  ),
+                  duration: Duration(milliseconds: 3000)
+              );
+              break;
           }
 
 
 
         }
 
+
+
       }
 
 
     });
+
+
 
     super.initState();
   }
@@ -132,28 +171,30 @@ class _GamePageState extends State<GamePage> {
     });
 
 
-    return WillPopScope(
-      onWillPop: () async{
+    return LoadingModal(
+      child: WillPopScope(
+        onWillPop: () async{
 
-        if(!gs.isGameCleared){
-          showPauseDialog(context);
-        }
+          if(!gs.isGameCleared){
+            showPauseDialog(context);
+          }
 
 
-        return true;
-      },
-      child: Container(
-        child: Stack(children: [
-          GameMap(levelData: _currentLevelData,),
-          utilButtonContainerBuilder(context: context),
-          ]),
+          return true;
+        },
+        child: Container(
+          child: Stack(children: [
+            GameMap(levelData: _currentLevelData,),
+            utilButtonContainerBuilder(context: context),
+            ]),
+        ),
       ),
     );
   }
 
 
   Widget utilButtonContainerBuilder({BuildContext context}) {
-    GlobalStatus gs = Provider.of<GlobalStatus>(context);
+    GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
     return Positioned(
       // right: 20,
       top: 10 + MediaQuery.of(context).padding.top,

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:dont_be_five/common/color.dart';
+import 'package:dont_be_five/common/firebase.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/ToastType.dart';
+import 'package:dont_be_five/page/HomePage.dart';
 import 'package:dont_be_five/page/RouterPage.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/TileData.dart';
@@ -17,6 +19,7 @@ import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
+import 'package:dont_be_five/widget/Loading.dart';
 import 'package:dont_be_five/widget/Toast.dart';
 import 'package:flutter/material.dart';
 import 'package:dont_be_five/common/func.dart';
@@ -27,7 +30,8 @@ import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:swipedetector/swipedetector.dart';
 
-import 'HomePage.dart';
+import 'CustomLevelSelectPage.dart';
+// import 'HomePage.dart';
 
 class MapEditPage extends StatefulWidget {
   LevelData tempLevelData;
@@ -42,7 +46,7 @@ class _MapEditPageState extends State<MapEditPage> {
   LevelData _currentLevelData;
 
   final double _initFabHeight = 27.0;
-  double _fabHeight;
+  double _fabHeight = 200;
   double _panelHeightOpen = 190;
   double _panelHeightClosed = 25.0;
   PanelController _pc = new PanelController();
@@ -61,6 +65,9 @@ class _MapEditPageState extends State<MapEditPage> {
     },
     {
       "tabName": "별 조건",
+    },
+    {
+      "tabName": "기타",
     }
   ];
 
@@ -70,11 +77,17 @@ class _MapEditPageState extends State<MapEditPage> {
 
   @override
   void initState() {
+    AdManager.hideBanner();
+
     // TODO: implement initState
     _selectedTabIndex = 0;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+
+      setState(() {
+        _fabHeight = gs.deviceSize.height * 0.35 + 2;
+      });
 
       gs.isEditMode = true;
       gs.selectedMapInstance = null;
@@ -521,15 +534,15 @@ class _MapEditPageState extends State<MapEditPage> {
                     }
                   },
                   child: Container(
-                    margin: EdgeInsets.all(7),
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.black, width: 1),
-                      color: isSelectedInstance ? Color.fromRGBO(210, 210, 210, 1) : Colors.white,
-                    ),
-                    child: Text(x.name),
-                  ),
+                      margin: EdgeInsets.all(7),
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey, width: 1),
+                          color: isSelectedInstance ? Color.fromRGBO(210, 210, 210, 0.8) : Colors.white.withOpacity(0.7)),
+                      child: Image.asset(
+                        x.imagePath,
+                      )),
                 );
               }).toList()),
         );
@@ -559,15 +572,15 @@ class _MapEditPageState extends State<MapEditPage> {
                       }
                     },
                     child: Container(
-                      margin: EdgeInsets.all(7),
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.black, width: 1),
-                        color: isSelectedInstance ? Color.fromRGBO(210, 210, 210, 1) : Colors.white,
-                      ),
-                      child: Text(x.name),
-                    ),
+                        margin: EdgeInsets.all(7),
+                        padding: EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey, width: 1),
+                            color: isSelectedInstance ? Color.fromRGBO(210, 210, 210, 0.8) : Colors.white.withOpacity(0.7)),
+                        child: Image.asset(
+                          x.imagePath,
+                        )),
                   );
                 }).toList()));
       } else if (tabIndex == 2) {
@@ -584,10 +597,9 @@ class _MapEditPageState extends State<MapEditPage> {
                       margin: EdgeInsets.symmetric(vertical: 3, horizontal: 3),
                       padding: EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.black, width: 1),
-                        color: Colors.white,
-                      ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey, width: 1),
+                          color: Colors.white.withOpacity(0.7)),
                       child: Row(
                         children: [
                           SizedBox(
@@ -682,18 +694,18 @@ class _MapEditPageState extends State<MapEditPage> {
 
                   return Container(
                       margin: EdgeInsets.symmetric(vertical: 3, horizontal: 3),
-                      padding: EdgeInsets.all(5),
+                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.black, width: 1),
-                        color: pStarConditionIndex == 0 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                        border: Border.all(color: Colors.grey, width: 1),
+                        color: pStarConditionIndex == 0 ? Colors.grey.withOpacity(0.4) : Colors.white.withOpacity(0.7),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.star,
                             color: primaryYellow,
-                            size: gs.s5(),
+                            size: gs.s4(),
                           ),
                           SizedBox(
                             width: 5,
@@ -720,6 +732,99 @@ class _MapEditPageState extends State<MapEditPage> {
                         ],
                       ));
                 }).toList()));
+      } else if (tabIndex == 4) {
+        contentWidget = Container(
+            // height: 1000,
+            child: ListView(padding: EdgeInsets.all(0), scrollDirection: Axis.vertical, shrinkWrap: true, children: [
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey, width: 1),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            child: CustomButton(
+                onTap: () {
+                  showCustomConfirmDialog(
+                      context: context,
+                      title: "맵의 배치를 초기화하시겠어요?",
+                      content: "다시 되돌릴 수 없습니다.",
+                      confirmButtonAction: () {
+                        // Navigator.of(context).pop();
+                        gs.isEditMode = true;
+                        gs.notify();
+
+                        Navigator.pushReplacement(
+                          context,
+                          FadeRoute(page: MapEditPage()),
+                        );
+
+                        // Navigator.pop(context);
+                        // Navigator.push(
+                        //   context,
+                        //   FadeRoute(page: RouterPage(page: MapEditPage())),
+                        // );
+                      },
+                      cancelButtonAction: () {
+                        Navigator.of(context).pop();
+                      },
+                      cancelButtonText: "취소",
+                      confirmButtonText: "수정");
+                },
+                backgroundColor: Colors.white.withOpacity(0.7),
+                child: Container(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.replay, size: gs.s3()),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Text("맵 초기화",
+                            style: TextStyle(
+                              fontSize: gs.s5(),
+                            )),
+                      ),
+                    ],
+                  ),
+                )),
+          ),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 1),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                child: CustomButton(
+                    onTap: () {
+                      showCustomLevelModifySizeDialog(context: context);
+                    },
+                    backgroundColor: Colors.white.withOpacity(0.7),
+                    child: Container(
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Icon(Icons.zoom_out_map, size: gs.s3()),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Material(
+                            color: Colors.transparent,
+                            child: Text("맵 크기 변경",
+                                style: TextStyle(
+                                  fontSize: gs.s5(),
+                                )),
+                          ),
+                        ],
+                      ),
+                    )),
+              ),
+        ]));
       } else {}
 
       return contentWidget;
@@ -750,9 +855,10 @@ class _MapEditPageState extends State<MapEditPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
+                    width: MediaQuery.of(context).size.width * 0.25,
+                    child: ListView(
+                      padding: EdgeInsets.all(0),
+                      shrinkWrap: true,
                       children: tabData.map((x) {
                         return buildTabMenu(tabData.indexOf(x));
                       }).toList(),
@@ -771,38 +877,69 @@ class _MapEditPageState extends State<MapEditPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context).pop();
+    return LoadingModal(
+      child: WillPopScope(
+        onWillPop: () async {
+          exitEditPage(context: context);
 
-        return true;
-      },
-      child: Stack(
-        children: [
-          Container(
-            child: GameMap(
-              levelData: _currentLevelData,
+          return true;
+        },
+        child: Stack(
+          children: [
+            Container(
+              child: GameMap(
+                levelData: _currentLevelData,
+              ),
             ),
-          ),
-          Builder(
-            builder: (context) {
-              return SlidingUpPanel(
-                defaultPanelState: PanelState.OPEN,
-                minHeight: _panelHeightClosed,
-                maxHeight: _panelHeightOpen,
-                controller: _pc,
-                color: Colors.white.withOpacity(0.9),
-                panel: _buildUnderBox(),
-                onPanelSlide: (double pos) => setState(() {
-                  _fabHeight = pos * (_panelHeightOpen - _panelHeightClosed) + _initFabHeight;
-                }),
-              );
-            },
-          ),
-          utilButtonContainerBuilder2(context: context),
-        ],
+            Builder(
+              builder: (context) {
+                return SlidingUpPanel(
+                  defaultPanelState: PanelState.OPEN,
+                  minHeight: _panelHeightClosed,
+                  maxHeight: _panelHeightOpen,
+                  controller: _pc,
+                  color: Colors.white.withOpacity(0.9),
+                  panel: _buildUnderBox(),
+                  onPanelSlide: (double pos) => setState(() {
+                    _fabHeight = pos * (_panelHeightOpen - _panelHeightClosed) + _initFabHeight;
+                  }),
+                );
+              },
+            ),
+            utilButtonContainerBuilder2(context: context),
+            Positioned(
+              right: 0.0,
+              left: 0.0,
+              bottom: _fabHeight - 2,
+              child: buildUnderStickedBox(context: context),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget buildUnderStickedBox({BuildContext context}) {
+    GlobalStatus gs = Provider.of<GlobalStatus>(context);
+
+    if (gs.selectedMapInstance == null) {
+      return Container();
+    }
+
+    return Container(
+        // width: 150,
+        margin: EdgeInsets.symmetric(horizontal: gs.deviceSize.width * 0.2),
+        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 3),
+        decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(6), topRight: Radius.circular(6))),
+        child: Material(
+            color: Colors.transparent,
+            child: Text(
+              gs.selectedMapInstance.name + " 선택됨",
+              style: TextStyle(color: Colors.white, fontSize: gs.s5()),
+              textAlign: TextAlign.center,
+            )));
   }
 
   dynamic showCustomLevelModifySizeDialog({BuildContext context}) {
@@ -907,41 +1044,61 @@ class _MapEditPageState extends State<MapEditPage> {
                                 ),
                               ],
                             ),
-                            backgroundColor: Color.fromRGBO(210, 210, 210, 0.8),
+                            backgroundColor: primaryYellow,
                             onTap: () {
-                              LevelData initLevelData;
+                              if (_currentLevelData.mapWidth == _mapWidth && _currentLevelData.mapHeight == _mapHeight) {
+                                yy.dismiss();
 
-                              initLevelData = LevelData.fromJson({
-                                "seq": 9999999,
-                                "mapWidth": _mapWidth,
-                                "mapHeight": _mapHeight,
-                                "map": List.generate(_mapHeight, (i) {
-                                  return List.generate(_mapWidth, (j) {
-                                    return 0;
-                                  });
-                                }),
-                                "confined": List.generate(_mapHeight, (i) {
-                                  return List.generate(_mapWidth, (j) {
-                                    return 0;
-                                  });
-                                }),
-                                "isolated": List.generate(_mapHeight, (i) {
-                                  return List.generate(_mapWidth, (j) {
-                                    return 0;
-                                  });
-                                }),
-                                "pStarCondition": ["clear", "move 5 & clear", "move 8 & no vaccine & clear"]
-                              });
+                                return;
+                              }
 
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                FadeRoute(
-                                    page: RouterPage(
-                                        page: MapEditPage(
-                                  tempLevelData: initLevelData,
-                                ))),
-                              );
+                              showCustomConfirmDialog(
+                                  context: context,
+                                  title: "맵의 크기를 수정하시겠어요?",
+                                  content: "맵의 배치가 초기화됩니다.",
+                                  confirmButtonAction: () {
+                                    Navigator.of(context).pop();
+
+                                    LevelData initLevelData;
+
+                                    initLevelData = LevelData.fromJson({
+                                      "seq": 9999999,
+                                      "mapWidth": _mapWidth,
+                                      "mapHeight": _mapHeight,
+                                      "map": List.generate(_mapHeight, (i) {
+                                        return List.generate(_mapWidth, (j) {
+                                          return 0;
+                                        });
+                                      }),
+                                      "confined": List.generate(_mapHeight, (i) {
+                                        return List.generate(_mapWidth, (j) {
+                                          return 0;
+                                        });
+                                      }),
+                                      "isolated": List.generate(_mapHeight, (i) {
+                                        return List.generate(_mapWidth, (j) {
+                                          return 0;
+                                        });
+                                      }),
+                                      "pStarCondition": ["clear", "move 5 & clear", "move 8 & no vaccine & clear"]
+                                    });
+
+                                    yy.dismiss();
+                                    Navigator.push(
+                                      context,
+                                      FadeRoute(
+                                          page: RouterPage(
+                                              page: MapEditPage(
+                                        tempLevelData: initLevelData,
+                                      ))),
+                                    );
+                                  },
+                                  cancelButtonAction: () {
+                                    Navigator.of(context).pop();
+                                    yy.dismiss();
+                                  },
+                                  cancelButtonText: "취소",
+                                  confirmButtonText: "수정");
                             },
                           ),
                         ),
@@ -989,97 +1146,10 @@ class _MapEditPageState extends State<MapEditPage> {
           padding: EdgeInsets.symmetric(horizontal: 0),
           decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(10))),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               Container(
-                margin: EdgeInsets.only(right: 10),
-                child: Row(
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: () {
-                        // Navigator.of(context).pop();
-                        gs.isEditMode = true;
-                        gs.notify();
-
-                        // Navigator.pushReplacement(
-                        //   context,
-                        //   FadeRoute(page: MapEditPage()),
-                        // );
-
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          FadeRoute(page: RouterPage(page: MapEditPage())),
-                        );
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2),
-                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                        child: Icon(Icons.replay),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(right: 10),
-                child: Row(
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: () {
-                        // Navigator.of(context).pop();
-                        showCustomLevelModifySizeDialog(context: context);
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2),
-                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                        child: Icon(Icons.zoom_out_map),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(right: 10),
-                child: Row(
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: () {
-                        // Navigator.of(context).pop();
-
-                        gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
-                        gs.isEditMode = false;
-
-                        gs.tempCustomLevelData = _currentLevelData;
-
-                        List<String> validateErrorList = gs.validateCustomLevel(customLevelData: _currentLevelData);
-                        if (validateErrorList.length > 0) {
-                          showCustomToast(validateErrorList[0], ToastType.small);
-                        } else {
-                          moveToLevel(
-                              context: context,
-                              isSkipTutorial: true,
-                              isCustomLevel: true,
-                              customLevelData: _currentLevelData);
-                        }
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2),
-                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                        child: Icon(Icons.gamepad_outlined),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(right: 10),
+                margin: EdgeInsets.only(right: 3),
                 child: Row(
                   children: <Widget>[
                     GestureDetector(
@@ -1089,11 +1159,19 @@ class _MapEditPageState extends State<MapEditPage> {
                         publishCustomLevel(context: context);
                       },
                       child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2),
-                        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                        child: Icon(Icons.public),
+                          margin: EdgeInsets.symmetric(horizontal: 2),
+                          padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+                          decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.7), borderRadius: BorderRadius.all(Radius.circular(10))),
+                          child:  Row(
+                            children: [
+                              Icon(Icons.public, size: gs.s3(),),
+                              SizedBox(width: 5,),
+                              Material(
+                                  color: Colors.transparent,
+                                  child: Text("게시", style: TextStyle(fontSize: gs.s5(), ),))
+                            ],
+                          )
                       ),
                     ),
                   ],
@@ -1106,26 +1184,96 @@ class _MapEditPageState extends State<MapEditPage> {
                     GestureDetector(
                       onTap: () {
                         // Navigator.of(context).pop();
-                        gs.isEditMode = false;
-                        gs.notify();
-                        Navigator.pushReplacement(
-                          context,
-                          FadeRoute(page: HomePage()),
-                        );
+
+                       goTestGamePage(context: context);
                       },
                       child: Container(
                         margin: EdgeInsets.symmetric(horizontal: 2),
                         padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                         decoration: BoxDecoration(
-                            color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                        child: Icon(Icons.exit_to_app),
+                            color:  Colors.white.withOpacity(0.7), borderRadius: BorderRadius.all(Radius.circular(10))),
+                        child: Row(
+                          children: [
+                            Icon(Icons.play_circle_outline, size: gs.s3(),),
+                            SizedBox(width: 5,),
+                            Material(
+                                color: Colors.transparent,
+                                child: Text("테스트", style: TextStyle(fontSize: gs.s5(), ),))
+                          ],
+                        )
                       ),
                     ),
                   ],
                 ),
-              )
+              ),
+
+              // Container(
+              //   margin: EdgeInsets.only(right: 10),
+              //   child: Row(
+              //     children: <Widget>[
+              //       GestureDetector(
+              //         onTap: () {
+              //           // Navigator.of(context).pop();
+              //           exitEditPage(context :context);
+              //         },
+              //         child: Container(
+              //           margin: EdgeInsets.symmetric(horizontal: 2),
+              //           padding: EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+              //           decoration: BoxDecoration(
+              //               color: Color.fromRGBO(200, 200, 200, 1), borderRadius: BorderRadius.all(Radius.circular(10))),
+              //           child: Icon(Icons.exit_to_app),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // )
             ],
           )),
     );
   }
+
+  bool exitEditPage({BuildContext context}){
+
+    showCustomConfirmDialog(
+        context: context,
+        title: "맵 제작 화면에서 나가시겠어요?",
+        content: "작업 중인 맵은 사라집니다.",
+        confirmButtonAction: () {
+          GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+          Navigator.of(context).pop();
+          gs.isEditMode = false;
+          gs.notify();
+          Navigator.pushReplacement(
+            context,
+            FadeRoute(page: HomePage()),
+          );
+        },
+        cancelButtonAction: () {
+          Navigator.of(context).pop();
+        },
+        cancelButtonText: "취소",
+        confirmButtonText: "나가기");
+
+
+  }
+
+  void goTestGamePage({BuildContext context}){
+    GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+    List<String> validateErrorList = gs.validateCustomLevel(customLevelData: _currentLevelData);
+    if (validateErrorList.length > 0) {
+      showCustomToast(validateErrorList[0], ToastType.small);
+    } else {
+      gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
+      gs.isEditMode = false;
+
+      gs.tempCustomLevelData = _currentLevelData;
+
+      moveToLevel(
+          context: context,
+          isSkipTutorial: true,
+          isCustomLevel: true,
+          customLevelData: _currentLevelData);
+    }
+  }
+
 }

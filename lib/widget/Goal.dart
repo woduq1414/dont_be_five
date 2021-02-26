@@ -64,13 +64,16 @@ class _GoalState extends State<Goal> {
       _tileCornerOffsetList = gs.tileCornerOffsetList;
 
 
-      print("rebuild!!!!!!!");
+      print("rebuild!!!!!!! ${gs.tileCornerOffsetList.length}");
 
       // tileCornerOffsetList =
       //
       // _width = 27;
       // _height = 50;
-      _width = (_tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx) / 2.5;
+
+      double oneTileWidth = _tileCornerOffsetList[_y][_x+1].dx - _tileCornerOffsetList[_y][_x].dx;
+      double oneTileHeight = _tileCornerOffsetList[_y+1][_x+1].dy - _tileCornerOffsetList[_y][_x].dy;
+      _width =  min(oneTileWidth / 2.5, oneTileHeight / 2);
       _height = _width * 1.85;
 
       _dx = (_tileCornerOffsetList[_y][_x].dx +  _tileCornerOffsetList[_y+1][_x+1].dx) / 2 ;

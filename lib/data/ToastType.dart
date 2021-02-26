@@ -5,6 +5,7 @@ class ToastType {
 
   static const ToastType normal = ToastType("normal");
   static const ToastType small = ToastType("small");
+  static const ToastType starCondition = ToastType("starCondition");
 
 
 

@@ -38,6 +38,15 @@ import 'package:audioplayers/audioplayers.dart';
 class GlobalStatus with ChangeNotifier {
   ///////////////// GAME CONFIG
 
+  String _appVersion = "";
+
+
+  String get appVersion => _appVersion;
+
+  set appVersion(String value) {
+    _appVersion = value;
+  }
+
   bool _isDebug = false;
 
   bool get isDebug => _isDebug;
@@ -66,6 +75,25 @@ class GlobalStatus with ChangeNotifier {
   ///////////////// GAME CONFIG
 
   ///////////////// GAME SYSTEM VAR
+
+  bool _isHomePage = false;
+
+
+  bool get isHomePage => _isHomePage;
+
+  set isHomePage(bool value) {
+    _isHomePage = value;
+  }
+
+  bool _isHttpLoading = false;
+
+
+  bool get isHttpLoading => _isHttpLoading;
+
+  set isHttpLoading(bool value) {
+    _isHttpLoading = value;
+    notifyListeners();
+  }
 
   bool _isRateDialogShowed = false;
 
@@ -110,6 +138,11 @@ class GlobalStatus with ChangeNotifier {
     // notify();
   } ///////////////// IN GAME MAP
 
+
+
+
+
+
   GameMode _currentGameMode;
 
   GameMode get currentGameMode => _currentGameMode;
@@ -142,7 +175,7 @@ class GlobalStatus with ChangeNotifier {
     _moveCount = value;
   }
 
-  bool _isGameCleared;
+  bool _isGameCleared = false;
 
   bool get isGameCleared => _isGameCleared;
 
@@ -249,6 +282,12 @@ class GlobalStatus with ChangeNotifier {
 
   set tileCornerOffsetList(List<dynamic> value) {
     _tileCornerOffsetList = value;
+    print("len : ${tileCornerOffsetList.length}");
+    // if(tileCornerOffsetList.length != 9){
+    //   throw "ddddd${tileCornerOffsetList.length}";
+    // }
+
+
     notifyListeners();
   }
 
@@ -306,6 +345,16 @@ class GlobalStatus with ChangeNotifier {
 
   set testedLevelData(LevelData value) {
     _testedLevelData = value;
+  }
+
+
+  LevelData _playingCustomLevelData;
+
+
+  LevelData get playingCustomLevelData => _playingCustomLevelData;
+
+  set playingCustomLevelData(LevelData value) {
+    _playingCustomLevelData = value;
   } //////////////// IN EDIT MAP
 
   List<String> validateCustomLevel({LevelData customLevelData}){
@@ -377,6 +426,13 @@ class GlobalStatus with ChangeNotifier {
             }
           }
         }
+        for(TileData t in isolatedTileList + confinedTileList){
+          if(!_highlightTileMap[HighlightTile.selectable].contains(t)){
+            _highlightTileMap[HighlightTile.selectable].add(TileData(x: t.x, y: t.y));
+          }
+        }
+
+
         break;
       case MapInstance.isolatedTile:
         for (int i = 0; i < _levelData.mapHeight; i++) {
@@ -462,6 +518,29 @@ class GlobalStatus with ChangeNotifier {
     saveData.levelProcessList = levelProcessList;
     saveData.save();
   }
+
+  int getFinalAvailableLevelSeq(){
+    int max = -1;
+    for(LevelData ld in levelDataList){
+      if(ld.seq >= max){
+        max = ld.seq;
+      }
+    }
+    return max;
+  }
+
+
+  void cheat() async {
+    List<int> originalLevelProcessList = getLevelProcessList();
+
+    List<int> levelProcessList = List.generate(300, (index) {
+      return index <= 41 ? 7 : index == 42 ? 0 : -1;
+    });
+    SaveData saveData = box.get('saveData');
+    saveData.levelProcessList = levelProcessList;
+    saveData.save();
+  }
+
 
   void clearProcess() async {
     Map<String, dynamic> levelStarInfo = getLevelStarInfo();

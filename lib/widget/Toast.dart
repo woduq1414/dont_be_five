@@ -29,6 +29,8 @@ void showCustomToast(String message, ToastType type){
             child : Text(message, style: TextStyle(fontSize: 16, color: Colors.white), textAlign: TextAlign.center,)
         )
     );
+  }else if(type== ToastType.starCondition){
+
   }
 
 

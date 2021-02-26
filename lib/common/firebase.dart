@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 
 
 class AdManager {
+
+  static bool dontShowAd = false;
+
   static Ads _ads;
 
   static String _appId =  Platform.isIOS
@@ -54,6 +57,7 @@ class AdManager {
         State state,
         double anchorOffset,
         AnchorType anchorType}) =>
+  dontShowAd != true ?
       _ads?.showBannerAd(
           adUnitId: adUnitId,
           size: size,
@@ -65,7 +69,7 @@ class AdManager {
           listener: listener,
           state: state,
           anchorOffset: anchorOffset,
-          anchorType: anchorType);
+          anchorType: anchorType) : null;
 
   static void hideBanner() => _ads?.closeBannerAd();
 

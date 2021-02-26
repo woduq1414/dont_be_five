@@ -11,6 +11,7 @@ import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/page/HomePage.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
+import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
@@ -125,7 +126,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                         ),
                         Material(
                             color: Colors.transparent,
-                            child: Text("${gs.getTotalStarCount()}/${gs.getLastUnlockedLevel() * 3}",
+                            child: Text("${gs.getTotalStarCount()}/${min(gs.getLastUnlockedLevel(), gs.getFinalAvailableLevelSeq()) * 3}",
                                 style: TextStyle(fontSize: gs.s4(), color: Colors.white)))
                       ],
                     ),
@@ -299,7 +300,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     havingStar.add(levelStatus ~/ 4 % 2 == 1);
 
     int _cnt =0;
-
+    int _cnt2 =0;
     return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
 
       return  GestureDetector(
@@ -313,6 +314,15 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
             if(_cnt >= 5){
               gs.unlockAllLevel();
               gs.loadSaveData();
+            }
+          }
+          if(level == 142){
+            state(() {
+              _cnt= _cnt + 1;
+            });
+            print(_cnt);
+            if(_cnt >= 5){
+              showCouponCodeInputDialog(context: context);
             }
           }
         },

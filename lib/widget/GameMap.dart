@@ -454,6 +454,23 @@ class MapPainter extends CustomPainter {
             break;
           case MapInstance.blockTile:
             tempLevelData.map[i][j] = 0;
+
+            if (tempLevelData.isolated[i][j] == 1) {
+              tempLevelData.isolated[i][j] = 0;
+              gs.isolatedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+              gs.highlightTileMap[HighlightTile.isolated]
+                  .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            }
+
+            if (tempLevelData.confined[i][j] == 1) {
+
+              tempLevelData.confined[i][j] = 0;
+              gs.confinedTileList.removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+              gs.highlightTileMap[HighlightTile.confined]
+                  .removeWhere((element) => element.x == targetTile.x && element.y == targetTile.y);
+            }
+
+
             gs.levelData = tempLevelData;
             break;
           case MapInstance.isolatedTile:
@@ -655,7 +672,7 @@ class MapPainter extends CustomPainter {
   MapPainter({this.levelData, this.tileCornerOffsetList, this.context, this.isSample = false});
 }
 
-List<Widget> personBuilder({BuildContext context, List<PersonData> pdl}) {
+List<Widget> personBuilder({BuildContext context, List<PersonData> pdl, List<dynamic> tcol}) {
   print("what?");
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   List<dynamic> personDataList;
@@ -684,6 +701,7 @@ List<Widget> personBuilder({BuildContext context, List<PersonData> pdl}) {
   // print("--------??");
 
   bool isEditMode = gs.isEditMode;
+  // bool isHomePage = gs.isHomePage;
   return personDataList.map((x) {
     // print("${x.clone().hash} hash : ");
 
@@ -691,7 +709,7 @@ List<Widget> personBuilder({BuildContext context, List<PersonData> pdl}) {
       return personWidgetBuilder(context: context, hash: x.hash);
     } else {
       return Person(
-        hash: x.hash,
+        hash: x.hash, personDataList: pdl,
       );
     }
   }).toList();

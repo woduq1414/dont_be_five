@@ -4,6 +4,7 @@ import 'package:dont_be_five/common/func.dart';
 import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/ToastType.dart';
+import 'package:dont_be_five/page/CustomLevelSelectPage.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -151,7 +152,13 @@ YYDialog showGoalDialog(BuildContext context) {
                             moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
 
                           }else{
-                            moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.tempCustomLevelData);
+                            if(gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING){
+                              moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.tempCustomLevelData);
+                            }else{
+                              moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.playingCustomLevelData);
+                            }
+
+
                           }
 
 
@@ -207,7 +214,7 @@ YYDialog showGoalDialog(BuildContext context) {
                                 ),
                                 Material(
                                   color: Colors.transparent,
-                                  child: Text("공유 하기",
+                                  child: Text("게시하기",
                                       style: TextStyle(
                                         fontSize: gs.s5(),
                                       )),
@@ -219,7 +226,38 @@ YYDialog showGoalDialog(BuildContext context) {
                   ],
                 )
                     :
-                Row(
+                gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY ? Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          yy.dismiss();
+                          backToCustomLevelSelectPage(context: context);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)), color: primaryYellow.withOpacity(0.8)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.arrow_forward, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("맵 목록으로",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                ) : Row(
                   children: <Widget>[
                     Expanded(
                       child: GestureDetector(
@@ -374,7 +412,39 @@ YYDialog showPauseDialog(BuildContext context) {
                       ),
                     ),
                   ],
-                ) : Container(),
+                ) :  Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          yy.dismiss();
+                         backToCustomLevelSelectPage(context: context);
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                color: Color.fromRGBO(200, 200, 200, 0.8)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.arrow_back, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("맵 목록으로",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                ),
 
                 SizedBox(
                   height: 15,
@@ -827,4 +897,141 @@ void backToEditPage({BuildContext context}){
   );
 
   return;
+}
+
+void backToCustomLevelSelectPage({BuildContext context}){
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  // Navigator.pop(context);
+  // Navigator.pop(context);
+  Navigator.pushReplacement(
+    context,
+    FadeRoute(page: CustomLevelSelectPage()),
+  );
+
+  return;
+}
+
+
+dynamic showCouponCodeInputDialog({BuildContext context}) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  var yy = YYDialog();
+
+  return yy.build(context)
+    ..barrierDismissible = true
+    ..width = gs.deviceSize.width * 0.9
+    ..backgroundColor = Colors.white12.withOpacity(1)
+    ..duration = Duration(milliseconds: 400)
+    ..widget(Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+          ),
+          // width: gs.deviceS,
+
+          child: Container(
+            // padding: EdgeInsets.symmetric(),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text("코드", style: TextStyle(fontSize: gs.s3())),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Builder(builder: (context) {
+                    final myController = TextEditingController(
+                        text:
+                        "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')} ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}");
+
+                    String title = "";
+
+                    bool _isPublic = true;
+
+                    bool _isUploading = false;
+
+                    return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                      return Column(
+                        children: [
+                          Column(
+                            children: [
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: '코드',
+                                ),
+                                onChanged: (x) {},
+                                controller: myController,
+                              )
+                            ],
+                          ),
+
+                          SizedBox(height: 5,),
+                          Container(
+                            child: CustomButton(
+                              borderRadius: BorderRadius.all(Radius.circular(0)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Icon(Icons.check, size: gs.s3()),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: Text("확인",
+                                        style: TextStyle(
+                                          fontSize: gs.s5(),
+                                        )),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: primaryYellow,
+                              onTap: (){
+                                String text = myController.text;
+
+                                if(text == "4pErTuRe_F0r3vER"){
+                                    gs.cheat();
+                                  gs.loadSaveData();
+                                }
+
+                                print(text);
+
+                                yy.dismiss();
+                              }
+                            ),
+                          ),
+                        ],
+                      );
+                    });
+                  }),
+                ],
+              )),
+        )
+      ],
+    ))
+    ..animatedFunc = (child, animation) {
+      return Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translate(
+            0.0,
+            Tween<double>(begin: -50.0, end: 0)
+                .animate(
+              CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
+            )
+                .value,
+          )
+          ..scale(
+            Tween<double>(begin: 0, end: 1.0)
+                .animate(
+              CurvedAnimation(curve: Curves.easeOut, parent: animation),
+            )
+                .value,
+          ),
+        child: child,
+      );
+    }
+    ..show();
 }
