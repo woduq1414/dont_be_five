@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 class AdManager {
 
-  static bool dontShowAd = false;
+  static bool dontShowAd = true;
 
   static Ads _ads;
 
@@ -74,7 +74,7 @@ class AdManager {
   static void hideBanner() => _ads?.closeBannerAd();
 
   /// Call this static function in your State object's initState() function.
-  static void init() => _ads ??= Ads(
+  static void init() =>  dontShowAd != true ? _ads ??= Ads(
     _appId,
     bannerUnitId: _bannerUnitId,
     keywords: <String>['games', 'computers', 'game', 'mobile'],
@@ -83,7 +83,7 @@ class AdManager {
     testDevices: ['Samsung_Galaxy_SII_API_26:5554'],
     testing: false,
     listener: _eventListener,
-  );
+  ) : null;
 
   /// Remember to call this in the State object's dispose() function.
   static void dispose() => _ads?.dispose();

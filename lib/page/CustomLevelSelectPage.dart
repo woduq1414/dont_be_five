@@ -28,6 +28,7 @@ import 'package:flutter/rendering.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 import 'GamePage.dart';
@@ -67,11 +68,9 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
 
     _searchData = searchData;
 
-
-    if(myLevel != null){
+    if (myLevel != null) {
       _myLevel = myLevel;
     }
-
   }
 
   CarouselController buttonCarouselController = CarouselController();
@@ -107,11 +106,10 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
 
     postBody["device_id"] = await getDeviceId();
 
-    if(_myLevel == true){
+    if (_myLevel == true) {
       print("fsdfffffff");
       postBody["type"] = "my";
     }
-
 
     final res = await http.post(
       "${currentHost}/custom-level/list",
@@ -137,14 +135,25 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
     });
   }
 
+  void nicknameSetCheck({BuildContext context}) async {
+    var storage = FlutterSecureStorage();
+
+    String nickname = await storage.read(key: "nickname");
+    if (nickname == null) {
+      showSetNicknameDialog(context: context);
+    }
+  }
+
   @override
   void initState() {
-
     AdManager.hideBanner();
 
     // TODO: implement initState
 
     setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      nicknameSetCheck(context: context);
+    });
 
     getCustomLevelList();
 
@@ -157,14 +166,14 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        // Navigator.pushReplacement(
-        //   context,
-        //   FadeRoute(page: HomePage()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          FadeRoute(page: HomePage()),
+        );
 
         // if(Navigator.)
 
-        Navigator.pop(context, "goHome");
+        // Navigator.pop(context, "goHome");
 
         return true;
       },
@@ -246,9 +255,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              FadeRoute(
-                                  page: CustomLevelSelectPage(
-                                      page: 0, myLevel : true)),
+                              FadeRoute(page: CustomLevelSelectPage(page: 0, myLevel: true)),
                             );
                           },
                         ),
@@ -354,19 +361,22 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pop(context, "goHome");
+                        // Navigator.pop(context, "goHome");
 
-                        // Navigator.pushReplacement(
-                        //   context,
-                        //   FadeRoute(page: HomePage()),
-                        // );
+                        Navigator.pushReplacement(
+                          context,
+                          FadeRoute(
+                              page: CustomLevelSelectPage(
+                            page: 0,
+                          )),
+                        );
                       },
                       child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 80),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
                           child: Icon(
-                            Icons.undo,
+                            Icons.replay,
                             size: gs.s1(),
                           )),
                     ),
@@ -416,18 +426,24 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                     Row(
                       children: [
                         Text(
-                          customLevelJson["levelId"],
-                          style: TextStyle(fontSize: gs.s6()),
+                          customLevelJson["nickname"],
+                          style: TextStyle(fontSize: gs.s5() * 0.8),
                           textAlign: TextAlign.left,
                         ),
-                        customLevelJson["isMine"] == true ?
-                            Row(
-                              children: [
-                                SizedBox(width: 4,),
-                                Icon(Icons.person, size: gs.s5(), color: Colors.orangeAccent,)
-                              ],
-                            )
-                            :Container()
+                        customLevelJson["isMine"] == true
+                            ? Row(
+                                children: [
+                                  SizedBox(
+                                    width: 4,
+                                  ),
+                                  Icon(
+                                    Icons.person,
+                                    size: gs.s5(),
+                                    color: Colors.orangeAccent,
+                                  )
+                                ],
+                              )
+                            : Container()
                       ],
                     )
                   ],
@@ -492,7 +508,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                                   Container(
                                     // color: Colors.yellowAccent,
                                     width: 80,
-                                    child: Text("제목 : ",
+                                    child: Text("맵 이름 : ",
                                         style: TextStyle(
                                           fontSize: gs.s4(),
                                         )),
@@ -508,6 +524,32 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                                     ),
                                     textAlign: TextAlign.center,
                                   ))
+                                ],
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    // color: Colors.yellowAccent,
+                                    width: 80,
+                                    child: Text("제작자 : ",
+                                        style: TextStyle(
+                                          fontSize: gs.s4(),
+                                        )),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Expanded(
+                                      child: Text(
+                                        customLevelJson["nickname"],
+                                        style: TextStyle(
+                                          fontSize: gs.s5(),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ))
                                 ],
                               ),
                             ),
@@ -539,70 +581,70 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                             )
                           ],
                         ),
-                        SizedBox(height: 10,),
+                        SizedBox(
+                          height: 10,
+                        ),
                         Row(
                           children: [
-                            if (customLevelJson["isMine"] == true) Flexible(
-                              child: Container(
-                                child: CustomButton(
-                                  borderRadius: BorderRadius.all(Radius.circular(0)),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(Icons.delete, size: gs.s3()),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Text("삭제",
-                                            style: TextStyle(
-                                              fontSize: gs.s5(),
-                                            )),
-                                      ),
-                                    ],
+                            if (customLevelJson["isMine"] == true)
+                              Flexible(
+                                child: Container(
+                                  child: CustomButton(
+                                    borderRadius: BorderRadius.all(Radius.circular(0)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Icon(Icons.delete, size: gs.s3()),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: Text("삭제",
+                                              style: TextStyle(
+                                                fontSize: gs.s5(),
+                                              )),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: Colors.grey.withOpacity(0.5),
+                                    onTap: () {
+                                      showCustomConfirmDialog(
+                                          context: context,
+                                          title: "정말로 맵을 삭제하시겠어요?",
+                                          content: "다시 되돌릴 수 없습니다.",
+                                          confirmButtonAction: () async {
+                                            final res = await http.post(
+                                              "${currentHost}/custom-level/delete",
+                                              body: jsonEncode({
+                                                "device_id": await getDeviceId(),
+                                                "level_id": customLevelJson["levelId"]
+                                              }),
+                                              headers: {"Content-Type": "application/json"},
+                                            );
+
+                                            Navigator.of(context).pop();
+                                            yy.dismiss();
+
+                                            Navigator.pushReplacement(
+                                              context,
+                                              FadeRoute(
+                                                  page: CustomLevelSelectPage(
+                                                page: 0,
+                                              )),
+                                            );
+                                          },
+                                          cancelButtonAction: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          cancelButtonText: "취소",
+                                          confirmButtonText: "삭제하기");
+                                    },
                                   ),
-                                  backgroundColor: Colors.grey.withOpacity(0.5),
-                                  onTap: () {
-                                    showCustomConfirmDialog(
-                                        context: context,
-                                        title: "정말로 맵을 삭제하시겠어요?",
-                                        content: "다시 되돌릴 수 없습니다.",
-                                        confirmButtonAction: () async {
-
-
-
-
-                                          final res = await http.post(
-                                            "${currentHost}/custom-level/delete",
-                                            body: jsonEncode({
-                                              "device_id" : await getDeviceId(),
-                                              "level_id" : customLevelJson["levelId"]
-                                            }),
-                                            headers: {"Content-Type": "application/json"},
-                                          );
-
-                                          Navigator.of(context).pop();
-                                          yy.dismiss();
-
-
-                                          Navigator.pushReplacement(
-                                            context,
-                                            FadeRoute(
-                                                page: CustomLevelSelectPage(
-                                                    page: 0, myLevel : true)),
-                                          );
-
-                                        },
-                                        cancelButtonAction: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        cancelButtonText: "취소",
-                                        confirmButtonText: "삭제하기");
-                                  },
                                 ),
-                              ),
-                            ) else Container(),
+                              )
+                            else
+                              Container(),
                             Flexible(
                               child: Container(
                                 child: CustomButton(
@@ -640,9 +682,6 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                             ),
                           ],
                         ),
-
-
-
                       ],
                     );
                   });
@@ -780,7 +819,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                             backgroundColor: primaryYellow,
                             onTap: () {
                               yy.dismiss();
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 FadeRoute(
                                     page: CustomLevelSelectPage(

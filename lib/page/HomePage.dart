@@ -293,22 +293,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         // moveToLevel(level: 23 , context: context);
                         // return;
 
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           FadeRoute(page: CustomLevelSelectPage()),
-                        ).then((x){
+                        );
 
-                          if(x== "goHome"){
 
-                            // showCustomToast("fffffff", ToastType.small);
-
-                            AdManager.showBanner();
-                            gs.levelData = _levelData;
-                            gs.tileCornerOffsetList = _tileCornerOffsetList;
-                          }
-
-                          // print(gs.tileCornerOffsetList);
-                        });
+                        // Navigator.push(
+                        //   context,
+                        //   FadeRoute(page: CustomLevelSelectPage()),
+                        // ).then((x){
+                        //
+                        //   if(x== "goHome"){
+                        //
+                        //     // showCustomToast("fffffff", ToastType.small);
+                        //
+                        //     AdManager.showBanner();
+                        //     gs.levelData = _levelData;
+                        //     gs.tileCornerOffsetList = _tileCornerOffsetList;
+                        //   }
+                        //
+                        //   // print(gs.tileCornerOffsetList);
+                        // });
 
                         // gs.testedLevelData = null;
                         // gs.isEditMode = true;

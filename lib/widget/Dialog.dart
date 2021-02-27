@@ -763,6 +763,25 @@ YYDialog showSettingDialog({BuildContext context}) {
                   ],),
                   SizedBox(height: 5,),
                   Row(
+                    children: [
+                      Text(
+                        "닉네임 : ",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      SizedBox(width: 5,),
+                      CustomButton(
+                          backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            child: Text("설정", style : TextStyle(fontSize: gs.s5()))),
+                        onTap : () {
+                          showSetNicknameDialog(context: context);
+                        }
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 8,),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
 
@@ -1010,6 +1029,157 @@ dynamic showCouponCodeInputDialog({BuildContext context}) {
               )),
         )
       ],
+    ))
+    ..animatedFunc = (child, animation) {
+      return Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translate(
+            0.0,
+            Tween<double>(begin: -50.0, end: 0)
+                .animate(
+              CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
+            )
+                .value,
+          )
+          ..scale(
+            Tween<double>(begin: 0, end: 1.0)
+                .animate(
+              CurvedAnimation(curve: Curves.easeOut, parent: animation),
+            )
+                .value,
+          ),
+        child: child,
+      );
+    }
+    ..show();
+}
+
+
+dynamic showSetNicknameDialog({BuildContext context}) async {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  var yy = YYDialog();
+  var storage = FlutterSecureStorage();
+
+  String nickname = await storage.read(key: "nickname");
+  if(nickname == null){
+    nickname ="익명";
+  }
+  return yy.build(context)
+    ..barrierDismissible = false
+    ..width = gs.deviceSize.width * 0.9
+    ..backgroundColor = Colors.white12.withOpacity(1)
+    ..duration = Duration(milliseconds: 400)
+    ..dismissCallBack = () async{
+    
+     
+      
+    }
+    ..widget(WillPopScope(
+      onWillPop: () async{
+        return false;
+      },
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            // width: gs.deviceS,
+
+            child: Container(
+              // padding: EdgeInsets.symmetric(),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text("닉네임", style: TextStyle(fontSize: gs.s3())),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text("커스텀 맵의 제작자 닉네임으로 다른 사람들에게 공개됩니다.", style : TextStyle(
+                      fontSize: gs.s5(),
+                    ), textAlign: TextAlign.center,),
+
+
+                    Builder(builder: (context) {
+                      final myController = TextEditingController(
+                          text:
+                          nickname);
+                      String title = "";
+
+
+
+                      return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                        return Column(
+                          children: [
+                            Column(
+                              children: [
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: '닉네임',
+                                  ),
+                                  onChanged: (x) {},
+                                  controller: myController,
+                                )
+                              ],
+                            ),
+
+                            Text("※ 설정 창에서 다시 설정할 수 있습니다.", style : TextStyle(
+                              fontSize: gs.s5(),
+                            ), textAlign: TextAlign.center,),
+
+                            SizedBox(height: 5,),
+                            Container(
+                              child: CustomButton(
+                                  borderRadius: BorderRadius.all(Radius.circular(0)),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(Icons.check, size: gs.s3()),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Text("확인",
+                                            style: TextStyle(
+                                              fontSize: gs.s5(),
+                                            )),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: primaryYellow,
+                                  onTap: () async{
+                                    String text = myController.text.replaceAll(" ", "");
+
+                                    var storage = FlutterSecureStorage();
+
+                                    if(text.length >= 1 && text.length <= 10){
+                                      storage.write(key: "nickname", value: text);
+                                      yy.dismiss();
+                                    }else{
+                                      showCustomToast("공백이 없는 1자 이상 10자 이하의 닉네임을 입력해주세요.", ToastType.small);
+                                    }
+
+
+
+
+
+                                  }
+                              ),
+                            ),
+                          ],
+                        );
+                      });
+                    }),
+                  ],
+                )),
+          )
+        ],
+      ),
     ))
     ..animatedFunc = (child, animation) {
       return Transform(

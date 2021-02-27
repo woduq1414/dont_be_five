@@ -4,4 +4,4 @@ class Host {
   static const String localAddress = "http://192.168.21.1:5000/api";
 }
 
-String currentHost = Host.herokuAddress;
+String currentHost = Host.localAddress;
