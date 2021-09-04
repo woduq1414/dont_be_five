@@ -66,6 +66,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   bool _personLoaded = false;
 
+  bool _isCustomMapAvailable = false;
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -103,8 +105,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       setState(() {
 
 
-
         GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+
+        // print(gs.getLastUnlockedLevel());
+        // if(gs.getLastUnlockedLevel() >= 19){
+        //   _isCustomMapAvailable = true;
+        // }else{
+        //   _isCustomMapAvailable = false;
+        // }
+
+
+
+
+
+
         _tileCornerOffsetList = calcTileCornerOffsetList(levelData: _levelData, context: context);
         gs.tileCornerOffsetList = _tileCornerOffsetList;
 
@@ -131,10 +145,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+    GlobalStatus gs = Provider.of<GlobalStatus>(context);
     print(gs);
     gs.deviceSize = MediaQuery.of(context).size;
     gs.isHomePage = true;
+
+
 
 
     // gs.levelData = _levelData;
@@ -281,15 +297,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                           Material(
                             color: Colors.transparent,
+                            child: Text("(Beta) ",
+                                style: TextStyle(
+                                  fontSize: gs.s6() * 1.1,
+                                )),
+                          ),
+                          Material(
+                            color: Colors.transparent,
                             child: Text("커스텀 맵",
                                 style: TextStyle(
                                   fontSize: gs.s4(),
                                 )),
                           ),
+
                         ],
                       ),
-                      backgroundColor: Colors.white70.withOpacity(0.9),
-                      onTap: () {
+                      backgroundColor: gs.isCustomMapAvailable ? Colors.white70.withOpacity(0.9) : Colors.grey.withOpacity(0.8),
+                      onTap: gs.isCustomMapAvailable ? () {
                         // moveToLevel(level: 23 , context: context);
                         // return;
 
@@ -325,7 +349,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         //   context,
                         //   FadeRoute(page: MapEditPage()),
                         // );
-                      },
+                      } : () {
+                        showCustomToast("18 스테이지를 클리어하면 열립니다!", ToastType.small);
+                      }
                     ),
                   ),
                 ),

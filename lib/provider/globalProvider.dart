@@ -136,6 +136,16 @@ class GlobalStatus with ChangeNotifier {
     print("oh!!!!!!!!!!!!!!!!!!!!!!!!!!");
     print(value);
     // notify();
+  }
+
+  bool _isCustomMapAvailable = false;
+
+
+  bool get isCustomMapAvailable => _isCustomMapAvailable;
+
+  set isCustomMapAvailable(bool value) {
+    _isCustomMapAvailable = value;
+    notifyListeners();
   } ///////////////// IN GAME MAP
 
 
@@ -585,6 +595,13 @@ class GlobalStatus with ChangeNotifier {
     if (counter.getValue("five") >= 19) {
       GamesServices.unlock(achievement: Achievement(androidID: AchievementData.disobedient));
     }
+
+    if(getLastUnlockedLevel() <= 18){
+      isCustomMapAvailable = false;
+    }else{
+      isCustomMapAvailable = true;
+    }
+
   }
 
   List<int> getLevelProcessList() {
@@ -1095,6 +1112,16 @@ class GlobalStatus with ChangeNotifier {
     levelDataList = mapJson["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
 
     await loadSaveData();
+
+
+    if(getLastUnlockedLevel() <= 18){
+      isCustomMapAvailable = false;
+    }else{
+      isCustomMapAvailable = true;
+    }
+    // showCustomToast(getLastUnlockedLevel().toString(), ToastType.small);
+
+
 
     var storage = FlutterSecureStorage();
 

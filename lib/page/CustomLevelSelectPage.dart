@@ -112,7 +112,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
     }
 
     final res = await http.post(
-      "${currentHost}/custom-level/list",
+      Uri.parse("${currentHost}/custom-level/list"),
       body: jsonEncode(postBody),
       headers: {"Content-Type": "application/json"},
     );
@@ -615,7 +615,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                                           content: "다시 되돌릴 수 없습니다.",
                                           confirmButtonAction: () async {
                                             final res = await http.post(
-                                              "${currentHost}/custom-level/delete",
+                                              Uri.parse("${currentHost}/custom-level/delete"),
                                               body: jsonEncode({
                                                 "device_id": await getDeviceId(),
                                                 "level_id": customLevelJson["levelId"]

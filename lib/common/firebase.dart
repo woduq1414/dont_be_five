@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 class AdManager {
 
-  static bool dontShowAd = true;
+  static bool dontShowAd = false;
 
   static Ads _ads;
 

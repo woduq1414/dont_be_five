@@ -332,7 +332,7 @@ dynamic showPublishCustomLevelDialog({BuildContext context}) {
                               });
 
                               final res = await http.post(
-                                "${currentHost}/custom-level/upload",
+                                Uri.parse("${currentHost}/custom-level/upload"),
                                 body: jsonEncode({
                                   "device_id" : deviceId,
                                   "app_version" : appVersion,
