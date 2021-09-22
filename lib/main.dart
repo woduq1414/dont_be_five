@@ -6,6 +6,7 @@ import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/page/CustomLevelSelectPage.dart';
 import 'package:dont_be_five/page/GamePage.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/page/NewHomePage.dart';
 
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    GamesServices.signIn();
+    // GamesServices.signIn();
 
     return MultiProvider(
       providers: [
@@ -108,7 +109,7 @@ class MyApp extends StatelessWidget {
           ),
           home: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              return HomePage();
+              return NewHomePage();
             },
           ),
         ),
