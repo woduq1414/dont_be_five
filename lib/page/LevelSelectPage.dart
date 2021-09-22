@@ -61,7 +61,10 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
   @override
   void initState() {
     // TODO: implement initState
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+      gs.audioPlayer.resume();
+    });
     setState(() {});
     super.initState();
   }

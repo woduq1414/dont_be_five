@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/firebase.dart';
@@ -32,6 +33,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:games_services/games_services.dart';
 import 'package:provider/provider.dart';
 import 'package:touchable/touchable.dart';
+
+import 'StoryLevelSelectPage.dart';
 
 // import 'GamePage.dart';
 
@@ -81,6 +84,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void initState() {
+
+
+
     // TODO: implement initState
     _personLoaded = false;
     AdManager.init();
@@ -138,6 +144,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         print(_levelData);
 
         print(_cachedPersonBuilder);
+
+
       });
     });
     super.initState();
@@ -246,7 +254,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                 ),
                 Positioned.fill(
-                  bottom: 130,
+                  bottom: 180,
                   left: 15,
                   right: 15,
                   child: Align(
@@ -261,7 +269,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                           Material(
                             color: Colors.transparent,
-                            child: Text("시작하기",
+                            child: Text("단계모드",
                                 style: TextStyle(
                                   fontSize: gs.s4(),
                                 )),
@@ -275,14 +283,54 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
                         Navigator.pushReplacement(
                           context,
-                          FadeRoute(page: LevelSelectPage()),
+                          // FadeRoute(page: LevelSelectPage()),
+                          FadeRoute(page: LevelSelectPage(page:0)),
+
                         );
                       },
                     ),
                   ),
                 ),
                 Positioned.fill(
-                  bottom: 180,
+                  bottom: 130,
+                  left: 15,
+                  right: 15,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: CustomButton(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.menu_book, size: gs.s2()),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Material(
+                            color: Colors.transparent,
+                            child: Text("스토리모드",
+                                style: TextStyle(
+                                  fontSize: gs.s4(),
+                                )),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.white70.withOpacity(0.9),
+                      onTap: () {
+                        // moveToLevel(level: 23 , context: context);
+                        // return;
+
+                        Navigator.pushReplacement(
+                          context,
+                          // FadeRoute(page: LevelSelectPage()),
+                          FadeRoute(page: StoryLevelSelectPage()),
+
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  bottom: 80,
                   left: 15,
                   right: 15,
                   child: Align(
@@ -295,16 +343,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           SizedBox(
                             width: 5,
                           ),
+                          // Material(
+                          //   color: Colors.transparent,
+                          //   child: Text("(Beta) ",
+                          //       style: TextStyle(
+                          //         fontSize: gs.s6() * 1.1,
+                          //       )),
+                          // ),
                           Material(
                             color: Colors.transparent,
-                            child: Text("(Beta) ",
-                                style: TextStyle(
-                                  fontSize: gs.s6() * 1.1,
-                                )),
-                          ),
-                          Material(
-                            color: Colors.transparent,
-                            child: Text("커스텀 맵",
+                            child: Text("메이커스센터",
                                 style: TextStyle(
                                   fontSize: gs.s4(),
                                 )),

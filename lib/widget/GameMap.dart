@@ -72,13 +72,17 @@ class _GameMapState extends State<GameMap> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+      gs.audioPlayer.pause();
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     GlobalStatus gs = Provider.of<GlobalStatus>(context);
-    gs.audioCache = audioCache;
+    // gs.audioCache = audioCache;
 
     setState(() {
       levelData = gs.levelData;
