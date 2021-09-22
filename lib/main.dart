@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dont_be_five/common/Font.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/page/CustomLevelSelectPage.dart';
@@ -22,10 +23,19 @@ import 'package:games_services/games_services.dart';
 import 'common/firebase.dart';
 
 int beepSoundId;
-
+// class _Handler extends WidgetsBindingObserver {
+//   @override
+//   void didChangeAppLifecycleState(AppLifecycleState state) {
+//     if (state == AppLifecycleState.resumed) {
+//       AudioPlayer.resume(); // Audio player is a custom class with resume and pause static methods
+//     } else {
+//       AudioPlayer.pause();
+//     }
+//   }
+// }
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // WidgetsBinding.instance.addObserver(new _Handler());
   runApp(MyApp());
 }
 

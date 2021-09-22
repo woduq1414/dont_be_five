@@ -9,8 +9,9 @@ class LevelData {
   List<dynamic> confined;
   Map<String, dynamic> items;
   List<String> pStarCondition;
+  String rule;
 
-  LevelData({this.seq, this.mapWidth, this.mapHeight, this.map, this.isolated, this.confined, this.items, this.pStarCondition});
+  LevelData({this.seq, this.mapWidth, this.mapHeight, this.map, this.isolated, this.confined, this.items, this.pStarCondition, this.rule});
 
   factory LevelData.fromJson(Map<String, dynamic> json) {
     return LevelData(
@@ -22,10 +23,11 @@ class LevelData {
       confined: json.containsKey("confined") ? json['confined'] as List<dynamic> : null,
       items: json.containsKey("items") ? json["items"] : {},
       pStarCondition: List<String>.from(json['pStarCondition']) ,
+      rule : json.containsKey("rule") ? json["rule"] : "limit5"
     );
   }
 
-  Map<String, dynamic> toJson() => {'seq': seq, 'mapWidth': mapWidth, 'mapHeight': mapHeight, 'map': map, 'isolated' : isolated,'confined' : confined, 'items' : items, 'pStarCondition' : pStarCondition};
+  Map<String, dynamic> toJson() => {'seq': seq, 'mapWidth': mapWidth, 'mapHeight': mapHeight, 'map': map, 'isolated' : isolated,'confined' : confined, 'items' : items, 'pStarCondition' : pStarCondition, "rule" : rule};
 
   LevelData clone() {
     final jsonResponse = json.decode(json.encode(this));

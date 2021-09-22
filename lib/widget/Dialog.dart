@@ -5,6 +5,7 @@ import 'package:dont_be_five/data/GameMode.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/CustomLevelSelectPage.dart';
+import 'package:dont_be_five/page/StoryLevelSelectPage.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -20,6 +21,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_review/launch_review.dart';
+
 YYDialog showGoalDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
@@ -47,13 +49,20 @@ YYDialog showGoalDialog(BuildContext context) {
               children: <Widget>[
                 Material(
                     color: Colors.transparent,
-                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ? Text(
-                      "LEVEL ${level.toString()}",
-                      style: TextStyle(fontSize: 35),
-                    ) :Text(
-                      "CUSTOM LEVEL",
-                      style: TextStyle(fontSize: 27),
-                    ) ),
+                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                        ? Text(
+                            "LEVEL ${level.toString()}",
+                            style: TextStyle(fontSize: 35),
+                          )
+                        : gs.currentGameMode == GameMode.STORY_LEVEL_PLAY
+                            ? Text(
+                                "STORY LEVEL",
+                                style: TextStyle(fontSize: 27),
+                              )
+                            : Text(
+                                "CUSTOM LEVEL",
+                                style: TextStyle(fontSize: 27),
+                              )),
                 Material(
                     color: Colors.transparent,
                     child: Text(
@@ -67,77 +76,116 @@ YYDialog showGoalDialog(BuildContext context) {
                 SizedBox(
                   height: 15,
                 ),
-                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ?  Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            FadeRoute(
-                                page: LevelSelectPage(
-                                  page: (level - 1) ~/ 12,
-                                )),
-                          );
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_back, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("레벨 선택으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
+                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                    ? Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  FadeRoute(
+                                      page: LevelSelectPage(
+                                    page: (level - 1) ~/ 12,
+                                  )),
+                                );
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                                      color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(Icons.arrow_back, size: gs.s3()),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Text("레벨 선택으로",
+                                            style: TextStyle(
+                                              fontSize: gs.s5(),
+                                            )),
+                                      ),
+                                    ],
+                                  )),
+                            ),
+                          ),
+                        ],
+                      )
+                    : gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
+                        ? Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    backToEditPage(context: context);
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(Icons.arrow_back, size: gs.s3()),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Text("수정 화면으로",
+                                                style: TextStyle(
+                                                  fontSize: gs.s5(),
+                                                )),
+                                          ),
+                                        ],
                                       )),
                                 ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ) :
-                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ? Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          backToEditPage(context: context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_back, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("수정 화면으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      FadeRoute(
+                                          page: StoryLevelSelectPage(
+                                        page: (level - 1) ~/ 12,
+                                      )),
+                                    );
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(Icons.arrow_back, size: gs.s3()),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Text("레벨 선택으로",
+                                                style: TextStyle(
+                                                  fontSize: gs.s5(),
+                                                )),
+                                          ),
+                                        ],
                                       )),
                                 ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ) : Container(),
-
+                              ),
+                            ],
+                          ),
                 SizedBox(
                   height: 10,
                 ),
@@ -148,20 +196,24 @@ YYDialog showGoalDialog(BuildContext context) {
                         onTap: () {
                           // yy.dismiss();
 
-                          if(gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY){
+                          if (gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ||
+                              gs.currentGameMode == GameMode.STORY_LEVEL_PLAY) {
                             moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
-
-                          }else{
-                            if(gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING){
-                              moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.tempCustomLevelData);
-                            }else{
-                              moveToLevel(context: context, isSkipTutorial: true, isCustomLevel: true, customLevelData: gs.playingCustomLevelData);
+                          } else {
+                            if (gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING) {
+                              moveToLevel(
+                                  context: context,
+                                  isSkipTutorial: true,
+                                  isCustomLevel: true,
+                                  customLevelData: gs.tempCustomLevelData);
+                            } else {
+                              moveToLevel(
+                                  context: context,
+                                  isSkipTutorial: true,
+                                  isCustomLevel: true,
+                                  customLevelData: gs.playingCustomLevelData);
                             }
-
-
                           }
-
-
                         },
                         child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
@@ -191,104 +243,110 @@ YYDialog showGoalDialog(BuildContext context) {
                 SizedBox(
                   height: 10,
                 ),
-                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ?
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // yy.dismiss();
+                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
+                    ? Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                // yy.dismiss();
 
-                         publishCustomLevel(context : context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)), color: primaryYellow.withOpacity(0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_forward, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("게시하기",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
+                                publishCustomLevel(context: context);
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                                      color: primaryYellow.withOpacity(0.8)),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(Icons.arrow_forward, size: gs.s3()),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Text("게시하기",
+                                            style: TextStyle(
+                                              fontSize: gs.s5(),
+                                            )),
+                                      ),
+                                    ],
+                                  )),
+                            ),
+                          ),
+                        ],
+                      )
+                    : gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY
+                        ? Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    yy.dismiss();
+                                    backToCustomLevelSelectPage(context: context);
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                                          color: primaryYellow.withOpacity(0.8)),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(Icons.arrow_forward, size: gs.s3()),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Text("맵 목록으로",
+                                                style: TextStyle(
+                                                  fontSize: gs.s5(),
+                                                )),
+                                          ),
+                                        ],
                                       )),
                                 ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                )
-                    :
-                gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY ? Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          yy.dismiss();
-                          backToCustomLevelSelectPage(context: context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)), color: primaryYellow.withOpacity(0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_forward, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("맵 목록으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
-                                      )),
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ) : Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // yy.dismiss();
-                          moveToLevel(level: gs.levelData.seq + 1, context: context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)), color: primaryYellow.withOpacity(0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_forward, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("다음 레벨로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
-                                      )),
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ),
+                              ),
+                            ],
+                          )
+                        : gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                            ? Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // yy.dismiss();
+                                        moveToLevel(level: gs.levelData.seq + 1, context: context);
+                                      },
+                                      child: Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                                              color: primaryYellow.withOpacity(0.8)),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              Icon(Icons.arrow_forward, size: gs.s3()),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Material(
+                                                color: Colors.transparent,
+                                                child: Text("다음 레벨로",
+                                                    style: TextStyle(
+                                                      fontSize: gs.s5(),
+                                                    )),
+                                              ),
+                                            ],
+                                          )),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Container(),
               ],
             ))),
       ),
@@ -329,13 +387,15 @@ YYDialog showPauseDialog(BuildContext context) {
               children: <Widget>[
                 Material(
                     color: Colors.transparent,
-                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ? Text(
-                      "LEVEL ${level.toString()}",
-                      style: TextStyle(fontSize: 35),
-                    ) :Text(
-                      "CUSTOM LEVEL",
-                      style: TextStyle(fontSize: 27),
-                    ) ),
+                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                        ? Text(
+                            "LEVEL ${level.toString()}",
+                            style: TextStyle(fontSize: 35),
+                          )
+                        : Text(
+                            "CUSTOM LEVEL",
+                            style: TextStyle(fontSize: 27),
+                          )),
                 SizedBox(
                   height: 15,
                 ),
@@ -343,109 +403,121 @@ YYDialog showPauseDialog(BuildContext context) {
                 SizedBox(
                   height: 15,
                 ),
-                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ?  Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            FadeRoute(
-                                page: LevelSelectPage(
-                                  page: (level - 1) ~/ 12,
-                                )),
-                          );
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_back, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("레벨 선택으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
+                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                    ? Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  FadeRoute(
+                                      page: LevelSelectPage(
+                                    page: (level - 1) ~/ 12,
+                                  )),
+                                );
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                                      color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(Icons.arrow_back, size: gs.s3()),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Text("레벨 선택으로",
+                                            style: TextStyle(
+                                              fontSize: gs.s5(),
+                                            )),
+                                      ),
+                                    ],
+                                  )),
+                            ),
+                          ),
+                        ],
+                      )
+                    : gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
+                        ? Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    backToEditPage(context: context);
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(Icons.arrow_back, size: gs.s3()),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Text("수정 화면으로",
+                                                style: TextStyle(
+                                                  fontSize: gs.s5(),
+                                                )),
+                                          ),
+                                        ],
                                       )),
                                 ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ) :
-                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING ? Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          backToEditPage(context: context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_back, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("수정 화면으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    yy.dismiss();
+                                    if (gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY) {
+                                      backToCustomLevelSelectPage(context: context);
+                                    } else {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        FadeRoute(
+                                            page: StoryLevelSelectPage(
+                                          page: (level - 1) ~/ 12,
+                                        )),
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(Icons.arrow_back, size: gs.s3()),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Text("맵 목록으로",
+                                                style: TextStyle(
+                                                  fontSize: gs.s5(),
+                                                )),
+                                          ),
+                                        ],
                                       )),
                                 ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ) :  Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          yy.dismiss();
-                         backToCustomLevelSelectPage(context: context);
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.arrow_back, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("맵 목록으로",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
-                                      )),
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ),
-
+                              ),
+                            ],
+                          ),
                 SizedBox(
                   height: 15,
                 ),
@@ -517,7 +589,7 @@ YYDialog showPauseDialog(BuildContext context) {
 Widget buildStarInfo(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
-  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo(psc : gs.levelData.pStarCondition);
+  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo(psc: gs.levelData.pStarCondition);
   return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: levelStarInfo.keys.map<Widget>((cond) {
@@ -562,42 +634,44 @@ YYDialog showTutorialDialog({int page, BuildContext context}) {
     ..widget(Stack(
       children: [
         Container(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration:
-              BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
-          child: Column(
-            children: [
-              Text("좌우로 넘겨보세요!", style: TextStyle(fontSize: 18),),
-              CarouselSlider.builder(
-                itemCount: 10,
-                carouselController: buttonCarouselController,
-                itemBuilder: (BuildContext context, int itemIndex, int _) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Image.asset(
-                          ImagePath.getTutorialImagePath(itemIndex + 1),
-                          height: MediaQuery.of(context).size.height * 0.7,
-                        )
-                      ],
-                    )),
-                options: CarouselOptions(
-                  // height: gs.deviceSize.height * 0.,
-                  autoPlay: false,
-                  reverse: false,
-                  enableInfiniteScroll: false,
-                  enlargeCenterPage: true,
-                  viewportFraction: 0.9,
-                  aspectRatio: MediaQuery.of(context).size.width / MediaQuery.of(context).size.height,
-                  // height: ,
-                  initialPage: page - 1,
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration:
+                BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+            child: Column(
+              children: [
+                Text(
+                  "좌우로 넘겨보세요!",
+                  style: TextStyle(fontSize: 18),
                 ),
-              ),
-            ],
-          )
-        ),
+                CarouselSlider.builder(
+                  itemCount: 10,
+                  carouselController: buttonCarouselController,
+                  itemBuilder: (BuildContext context, int itemIndex, int _) => Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Image.asset(
+                        ImagePath.getTutorialImagePath(itemIndex + 1),
+                        height: MediaQuery.of(context).size.height * 0.7,
+                      )
+                    ],
+                  )),
+                  options: CarouselOptions(
+                    // height: gs.deviceSize.height * 0.,
+                    autoPlay: false,
+                    reverse: false,
+                    enableInfiniteScroll: false,
+                    enlargeCenterPage: true,
+                    viewportFraction: 0.9,
+                    aspectRatio: MediaQuery.of(context).size.width / MediaQuery.of(context).size.height,
+                    // height: ,
+                    initialPage: page - 1,
+                  ),
+                ),
+              ],
+            )),
         Positioned.fill(
           left: 15,
           right: 15,
@@ -660,10 +734,8 @@ YYDialog showSettingDialog({BuildContext context}) {
 
   var yy = YYDialog();
 
-
   var _volumeValue = gs.volumeValue;
   var _isVibrate = gs.isVibrate;
-
 
   return yy.build(context)
     ..barrierDismissible = true
@@ -710,7 +782,9 @@ YYDialog showSettingDialog({BuildContext context}) {
                   //     }),
                   //   ],
                   // ),
-                  SizedBox(height: 10,),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Row(
                     children: [
                       Text(
@@ -730,72 +804,79 @@ YYDialog showSettingDialog({BuildContext context}) {
                               var storage = FlutterSecureStorage();
                               storage.write(key: "isVibrate", value: value.toString());
                             },
-
                           );
-
-
                         });
                       }),
                     ],
                   ),
-                  Row(children: [
-                    Text(
-                      "버전 : ",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    FutureBuilder(
-                        future: rootBundle.loadString("pubspec.yaml"),
-                        builder: (context, snapshot) {
-                          String version = "Unknown";
-                          if (snapshot.hasData) {
-                            var yaml = loadYaml(snapshot.data);
-                            version = yaml["version"];
-                          }
+                  Row(
+                    children: [
+                      Text(
+                        "버전 : ",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      FutureBuilder(
+                          future: rootBundle.loadString("pubspec.yaml"),
+                          builder: (context, snapshot) {
+                            String version = "Unknown";
+                            if (snapshot.hasData) {
+                              var yaml = loadYaml(snapshot.data);
+                              version = yaml["version"];
+                            }
 
-                          return Container(
-                            child: Text(
-                              '$version',
-                              style: TextStyle(fontSize: gs.s5()),
-                            ),
-                          );
-                        }),
-
-                  ],),
-                  SizedBox(height: 5,),
+                            return Container(
+                              child: Text(
+                                '$version',
+                                style: TextStyle(fontSize: gs.s5()),
+                              ),
+                            );
+                          }),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
                   Row(
                     children: [
                       Text(
                         "닉네임 : ",
                         style: TextStyle(fontSize: 18),
                       ),
-                      SizedBox(width: 5,),
+                      SizedBox(
+                        width: 5,
+                      ),
                       CustomButton(
                           backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            child: Text("설정", style : TextStyle(fontSize: gs.s5()))),
-                        onTap : () {
-                          showSetNicknameDialog(context: context);
-                        }
-                      )
+                          child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              child: Text("설정", style: TextStyle(fontSize: gs.s5()))),
+                          onTap: () {
+                            showSetNicknameDialog(context: context);
+                          })
                     ],
                   ),
-                  SizedBox(height: 8,),
+                  SizedBox(
+                    height: 8,
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-
-                    CustomButton(
-                      backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
-                      onTap: (){
-                        LaunchReview.launch(androidAppId: "com.aperture.dont_be_five",);
-                      },
-                      child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                          child: Text("별점 평가/리뷰 하기", style: TextStyle(fontSize: gs.s5()),)),
-                    )
-                  ],)
-
+                      CustomButton(
+                        backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
+                        onTap: () {
+                          LaunchReview.launch(
+                            androidAppId: "com.aperture.dont_be_five",
+                          );
+                        },
+                        child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                            child: Text(
+                              "별점 평가/리뷰 하기",
+                              style: TextStyle(fontSize: gs.s5()),
+                            )),
+                      )
+                    ],
+                  )
                 ])),
       ],
     ))
@@ -808,15 +889,14 @@ YYDialog showSettingDialog({BuildContext context}) {
     ..show();
 }
 
-
 void showCustomConfirmDialog(
     {BuildContext context,
-      String title,
-      String content,
-      String cancelButtonText,
-      String confirmButtonText,
-      var cancelButtonAction,
-      var confirmButtonAction}) {
+    String title,
+    String content,
+    String cancelButtonText,
+    String confirmButtonText,
+    var cancelButtonAction,
+    var confirmButtonAction}) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -844,19 +924,21 @@ void showCustomConfirmDialog(
                       margin: EdgeInsets.only(left: 5),
                       child: Text(
                         title,
-                        style: TextStyle(fontSize: 20 ),
+                        style: TextStyle(fontSize: 20),
                       ),
                     ),
                     SizedBox(height: 10),
-                    if (content != null) Container(
-                      margin: EdgeInsets.only(bottom: 10, left: 5),
-                      child: Text(
-                        content,
-                        style: TextStyle(fontSize: 15),
-                        textAlign: TextAlign.left,
-                      ),
-                    ) else Container(),
-
+                    if (content != null)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 10, left: 5),
+                        child: Text(
+                          content,
+                          style: TextStyle(fontSize: 15),
+                          textAlign: TextAlign.left,
+                        ),
+                      )
+                    else
+                      Container(),
                   ],
                 ),
               ),
@@ -865,20 +947,22 @@ void showCustomConfirmDialog(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    cancelButtonText != null ? Expanded(
-                      child: Material(
-                        color: Color.fromRGBO(190, 190, 190, 1),
-                        child: InkWell(
-                          onTap: cancelButtonAction,
-                          child: Container(
-                            height: 35,
-                            child: Center(
-                              child: Text(cancelButtonText),
+                    cancelButtonText != null
+                        ? Expanded(
+                            child: Material(
+                              color: Color.fromRGBO(190, 190, 190, 1),
+                              child: InkWell(
+                                onTap: cancelButtonAction,
+                                child: Container(
+                                  height: 35,
+                                  child: Center(
+                                    child: Text(cancelButtonText),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ) : Container(),
+                          )
+                        : Container(),
                     Expanded(
                       child: Material(
                         color: primaryYellow,
@@ -906,19 +990,19 @@ void showCustomConfirmDialog(
   );
 }
 
-void backToEditPage({BuildContext context}){
+void backToEditPage({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   Navigator.pop(context);
   // Navigator.pop(context);
   Navigator.pushReplacement(
     context,
-    FadeRoute(page: MapEditPage(tempLevelData : gs.tempCustomLevelData)),
+    FadeRoute(page: MapEditPage(tempLevelData: gs.tempCustomLevelData)),
   );
 
   return;
 }
 
-void backToCustomLevelSelectPage({BuildContext context}){
+void backToCustomLevelSelectPage({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   // Navigator.pop(context);
   // Navigator.pop(context);
@@ -929,7 +1013,6 @@ void backToCustomLevelSelectPage({BuildContext context}){
 
   return;
 }
-
 
 dynamic showCouponCodeInputDialog({BuildContext context}) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
@@ -949,46 +1032,188 @@ dynamic showCouponCodeInputDialog({BuildContext context}) {
           // width: gs.deviceS,
 
           child: Container(
-            // padding: EdgeInsets.symmetric(),
+              // padding: EdgeInsets.symmetric(),
               child: Column(
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text("코드", style: TextStyle(fontSize: gs.s3())),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Builder(builder: (context) {
-                    final myController = TextEditingController(
-                        text:
+            children: [
+              SizedBox(
+                height: 10,
+              ),
+              Text("코드", style: TextStyle(fontSize: gs.s3())),
+              SizedBox(
+                height: 5,
+              ),
+              Builder(builder: (context) {
+                final myController = TextEditingController(
+                    text:
                         "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')} ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}");
 
-                    String title = "";
+                String title = "";
 
-                    bool _isPublic = true;
+                bool _isPublic = true;
 
-                    bool _isUploading = false;
+                bool _isUploading = false;
 
-                    return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
-                      return Column(
+                return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                  return Column(
+                    children: [
+                      Column(
                         children: [
-                          Column(
-                            children: [
-                              TextFormField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: '코드',
+                          TextFormField(
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: '코드',
+                            ),
+                            onChanged: (x) {},
+                            controller: myController,
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Container(
+                        child: CustomButton(
+                            borderRadius: BorderRadius.all(Radius.circular(0)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Icon(Icons.check, size: gs.s3()),
+                                SizedBox(
+                                  width: 5,
                                 ),
-                                onChanged: (x) {},
-                                controller: myController,
-                              )
-                            ],
-                          ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Text("확인",
+                                      style: TextStyle(
+                                        fontSize: gs.s5(),
+                                      )),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: primaryYellow,
+                            onTap: () {
+                              String text = myController.text;
 
-                          SizedBox(height: 5,),
-                          Container(
-                            child: CustomButton(
+                              if (text == "4pErTuRe_F0r3vER") {
+                                gs.cheat();
+                                gs.loadSaveData();
+                              }
+
+                              print(text);
+
+                              yy.dismiss();
+                            }),
+                      ),
+                    ],
+                  );
+                });
+              }),
+            ],
+          )),
+        )
+      ],
+    ))
+    ..animatedFunc = (child, animation) {
+      return Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translate(
+            0.0,
+            Tween<double>(begin: -50.0, end: 0)
+                .animate(
+                  CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
+                )
+                .value,
+          )
+          ..scale(
+            Tween<double>(begin: 0, end: 1.0)
+                .animate(
+                  CurvedAnimation(curve: Curves.easeOut, parent: animation),
+                )
+                .value,
+          ),
+        child: child,
+      );
+    }
+    ..show();
+}
+
+dynamic showSetNicknameDialog({BuildContext context}) async {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  var yy = YYDialog();
+  var storage = FlutterSecureStorage();
+
+  String nickname = await storage.read(key: "nickname");
+  if (nickname == null) {
+    nickname = "익명";
+  }
+  return yy.build(context)
+    ..barrierDismissible = false
+    ..width = gs.deviceSize.width * 0.9
+    ..backgroundColor = Colors.white12.withOpacity(1)
+    ..duration = Duration(milliseconds: 400)
+    ..dismissCallBack = () async {}
+    ..widget(WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            // width: gs.deviceS,
+
+            child: Container(
+                // padding: EdgeInsets.symmetric(),
+                child: Column(
+              children: [
+                SizedBox(
+                  height: 10,
+                ),
+                Text("닉네임", style: TextStyle(fontSize: gs.s3())),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  "커스텀 맵의 제작자 닉네임으로 다른 사람들에게 공개됩니다.",
+                  style: TextStyle(
+                    fontSize: gs.s5(),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Builder(builder: (context) {
+                  final myController = TextEditingController(text: nickname);
+                  String title = "";
+
+                  return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
+                    return Column(
+                      children: [
+                        Column(
+                          children: [
+                            TextFormField(
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: '닉네임',
+                              ),
+                              onChanged: (x) {},
+                              controller: myController,
+                            )
+                          ],
+                        ),
+                        Text(
+                          "※ 설정 창에서 다시 설정할 수 있습니다.",
+                          style: TextStyle(
+                            fontSize: gs.s5(),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Container(
+                          child: CustomButton(
                               borderRadius: BorderRadius.all(Radius.circular(0)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1007,176 +1232,25 @@ dynamic showCouponCodeInputDialog({BuildContext context}) {
                                 ],
                               ),
                               backgroundColor: primaryYellow,
-                              onTap: (){
-                                String text = myController.text;
+                              onTap: () async {
+                                String text = myController.text.replaceAll(" ", "");
 
-                                if(text == "4pErTuRe_F0r3vER"){
-                                    gs.cheat();
-                                  gs.loadSaveData();
+                                var storage = FlutterSecureStorage();
+
+                                if (text.length >= 1 && text.length <= 10) {
+                                  storage.write(key: "nickname", value: text);
+                                  yy.dismiss();
+                                } else {
+                                  showCustomToast("공백이 없는 1자 이상 10자 이하의 닉네임을 입력해주세요.", ToastType.small);
                                 }
-
-                                print(text);
-
-                                yy.dismiss();
-                              }
-                            ),
-                          ),
-                        ],
-                      );
-                    });
-                  }),
-                ],
-              )),
-        )
-      ],
-    ))
-    ..animatedFunc = (child, animation) {
-      return Transform(
-        alignment: Alignment.center,
-        transform: Matrix4.identity()
-          ..translate(
-            0.0,
-            Tween<double>(begin: -50.0, end: 0)
-                .animate(
-              CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
-            )
-                .value,
-          )
-          ..scale(
-            Tween<double>(begin: 0, end: 1.0)
-                .animate(
-              CurvedAnimation(curve: Curves.easeOut, parent: animation),
-            )
-                .value,
-          ),
-        child: child,
-      );
-    }
-    ..show();
-}
-
-
-dynamic showSetNicknameDialog({BuildContext context}) async {
-  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-  var yy = YYDialog();
-  var storage = FlutterSecureStorage();
-
-  String nickname = await storage.read(key: "nickname");
-  if(nickname == null){
-    nickname ="익명";
-  }
-  return yy.build(context)
-    ..barrierDismissible = false
-    ..width = gs.deviceSize.width * 0.9
-    ..backgroundColor = Colors.white12.withOpacity(1)
-    ..duration = Duration(milliseconds: 400)
-    ..dismissCallBack = () async{
-    
-     
-      
-    }
-    ..widget(WillPopScope(
-      onWillPop: () async{
-        return false;
-      },
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-            ),
-            // width: gs.deviceS,
-
-            child: Container(
-              // padding: EdgeInsets.symmetric(),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text("닉네임", style: TextStyle(fontSize: gs.s3())),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text("커스텀 맵의 제작자 닉네임으로 다른 사람들에게 공개됩니다.", style : TextStyle(
-                      fontSize: gs.s5(),
-                    ), textAlign: TextAlign.center,),
-
-
-                    Builder(builder: (context) {
-                      final myController = TextEditingController(
-                          text:
-                          nickname);
-                      String title = "";
-
-
-
-                      return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
-                        return Column(
-                          children: [
-                            Column(
-                              children: [
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: '닉네임',
-                                  ),
-                                  onChanged: (x) {},
-                                  controller: myController,
-                                )
-                              ],
-                            ),
-
-                            Text("※ 설정 창에서 다시 설정할 수 있습니다.", style : TextStyle(
-                              fontSize: gs.s5(),
-                            ), textAlign: TextAlign.center,),
-
-                            SizedBox(height: 5,),
-                            Container(
-                              child: CustomButton(
-                                  borderRadius: BorderRadius.all(Radius.circular(0)),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(Icons.check, size: gs.s3()),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Text("확인",
-                                            style: TextStyle(
-                                              fontSize: gs.s5(),
-                                            )),
-                                      ),
-                                    ],
-                                  ),
-                                  backgroundColor: primaryYellow,
-                                  onTap: () async{
-                                    String text = myController.text.replaceAll(" ", "");
-
-                                    var storage = FlutterSecureStorage();
-
-                                    if(text.length >= 1 && text.length <= 10){
-                                      storage.write(key: "nickname", value: text);
-                                      yy.dismiss();
-                                    }else{
-                                      showCustomToast("공백이 없는 1자 이상 10자 이하의 닉네임을 입력해주세요.", ToastType.small);
-                                    }
-
-
-
-
-
-                                  }
-                              ),
-                            ),
-                          ],
-                        );
-                      });
-                    }),
-                  ],
-                )),
+                              }),
+                        ),
+                      ],
+                    );
+                  });
+                }),
+              ],
+            )),
           )
         ],
       ),
@@ -1189,15 +1263,15 @@ dynamic showSetNicknameDialog({BuildContext context}) async {
             0.0,
             Tween<double>(begin: -50.0, end: 0)
                 .animate(
-              CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
-            )
+                  CurvedAnimation(curve: Interval(0.1, 0.5), parent: animation),
+                )
                 .value,
           )
           ..scale(
             Tween<double>(begin: 0, end: 1.0)
                 .animate(
-              CurvedAnimation(curve: Curves.easeOut, parent: animation),
-            )
+                  CurvedAnimation(curve: Curves.easeOut, parent: animation),
+                )
                 .value,
           ),
         child: child,

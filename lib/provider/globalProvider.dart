@@ -114,6 +114,15 @@ class GlobalStatus with ChangeNotifier {
     _audioCache = value;
   }
 
+  AudioPlayer _audioPlayer;
+
+
+  AudioPlayer get audioPlayer => _audioPlayer;
+
+  set audioPlayer(AudioPlayer value) {
+    _audioPlayer = value;
+  }
+
   Size _deviceSize;
 
   Size get deviceSize => _deviceSize;
@@ -277,6 +286,15 @@ class GlobalStatus with ChangeNotifier {
 
   int currentLevel = 0;
 
+  int _levelPersonLimit = 5;
+
+
+  int get levelPersonLimit => _levelPersonLimit;
+
+  set levelPersonLimit(int value) {
+    _levelPersonLimit = value;
+  }
+
   LevelData _levelData;
 
   List<dynamic> _tileCornerOffsetList;
@@ -286,6 +304,16 @@ class GlobalStatus with ChangeNotifier {
   set levelData(LevelData value) {
     _levelData = value;
     notifyListeners();
+  }
+
+
+  Map<String, dynamic> _storyDataJson;
+
+
+  Map<String, dynamic> get storyDataJson => _storyDataJson;
+
+  set storyDataJson(Map<String, dynamic> value) {
+    _storyDataJson = value;
   }
 
   List<dynamic> get tileCornerOffsetList => _tileCornerOffsetList;
@@ -393,7 +421,7 @@ class GlobalStatus with ChangeNotifier {
       result.add("목적지는 1개 존재해야 합니다.");
     }
     if(isFiveAll()){
-      result.add("<5인 이상 집합 금지>에 어긋난 타일이 있는 지 확인해주세요.");
+      result.add("<${levelPersonLimit}인 이상 집합 금지>에 어긋난 타일이 있는 지 확인해주세요.");
     }
     return result;
 
@@ -521,7 +549,7 @@ class GlobalStatus with ChangeNotifier {
   void unlockAllLevel() async {
     List<int> originalLevelProcessList = getLevelProcessList();
 
-    List<int> levelProcessList = List.generate(300, (index) {
+    List<int> levelProcessList = List.generate(10000, (index) {
       return originalLevelProcessList[index] > 0 ? originalLevelProcessList[index] : 0;
     });
     SaveData saveData = box.get('saveData');
@@ -532,7 +560,7 @@ class GlobalStatus with ChangeNotifier {
   int getFinalAvailableLevelSeq(){
     int max = -1;
     for(LevelData ld in levelDataList){
-      if(ld.seq >= max){
+      if(ld.seq >= max && ld.seq <= 1000){
         max = ld.seq;
       }
     }
@@ -543,7 +571,7 @@ class GlobalStatus with ChangeNotifier {
   void cheat() async {
     List<int> originalLevelProcessList = getLevelProcessList();
 
-    List<int> levelProcessList = List.generate(300, (index) {
+    List<int> levelProcessList = List.generate(10000, (index) {
       return index <= 41 ? 7 : index == 42 ? 0 : -1;
     });
     SaveData saveData = box.get('saveData');
@@ -554,7 +582,7 @@ class GlobalStatus with ChangeNotifier {
 
   void clearProcess() async {
     Map<String, dynamic> levelStarInfo = getLevelStarInfo();
-    print("dffddffd");
+    print("dffdsssssssssssssssssssssssssssdffd");
     print(getLevelStarInfo());
     List<int> levelProcessList = getLevelProcessList();
     int originLevelStatus = levelProcessList[levelData.seq - 1];
@@ -596,7 +624,7 @@ class GlobalStatus with ChangeNotifier {
       GamesServices.unlock(achievement: Achievement(androidID: AchievementData.disobedient));
     }
 
-    if(getLastUnlockedLevel() <= 18){
+    if(getLastUnlockedLevel() <= 18 && false ){
       isCustomMapAvailable = false;
     }else{
       isCustomMapAvailable = true;
@@ -612,7 +640,7 @@ class GlobalStatus with ChangeNotifier {
   int getTotalStarCount() {
     List<int> levelProcessList = getLevelProcessList();
     int cnt = 0;
-    for (int i = 0; i < levelProcessList.length; i++) {
+    for (int i = 0; i < 300; i++) {
       if (levelProcessList[i] > 0) {
         if (levelProcessList[i] % 2 == 1) {
           cnt += 1;
@@ -644,6 +672,19 @@ class GlobalStatus with ChangeNotifier {
       await initSaveData();
       saveData = box.get('saveData');
     }
+    if(saveData.levelProcessList.length <= 3000){
+      saveData = SaveData()
+        ..levelProcessList =  saveData.levelProcessList.sublist(0, 300) + List.generate(4700, (index) {
+          return -1;
+        }) + List.generate(5000, (index) {
+          return 0;
+        });
+
+      await box.put('saveData', saveData);
+    }
+
+
+
     print("SDDDDDDD");
     print(saveData);
 
@@ -660,6 +701,8 @@ class GlobalStatus with ChangeNotifier {
     var saveData = SaveData()
       ..levelProcessList = List.generate(300, (index) {
         return index == 0 ? 0 : -1;
+      }) + List.generate(9700, (index) {
+        return 0;
       });
 
     await box.put('saveData', saveData);
@@ -777,7 +820,7 @@ class GlobalStatus with ChangeNotifier {
     }
 
     if (getOnlyStr == true) {
-      print("sldfjlsdjfklsdkflsdklf");
+
       return strList;
     }
 
@@ -791,6 +834,27 @@ class GlobalStatus with ChangeNotifier {
       print("${p.x} ${p.y} : ${p.idx} / ${p.count} : ${p.hash}");
     }
   }
+
+  List<bool> getCurrentStarAchievedStatus(){
+    List<int> levelProcessList = getLevelProcessList();
+
+    if(currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY){
+      int originLevelStatus = levelProcessList[levelData.seq - 1];
+
+      List<bool> havingStar = [];
+      havingStar.add(originLevelStatus % 2 == 1);
+      havingStar.add(originLevelStatus ~/ 2 % 2 == 1);
+      havingStar.add(originLevelStatus ~/ 4 % 2 == 1);
+      return havingStar;
+    }else{
+      return [false, false, false];
+    }
+
+
+
+
+  }
+
 
   bool isIsolated({TileData tile}) {
     for (TileData t in _isolatedTileList) {
@@ -1106,15 +1170,21 @@ class GlobalStatus with ChangeNotifier {
   }
 
   init() async {
+    audioCache = AudioCache();
+
+    audioPlayer = await audioCache.loop(SoundPath.lobby, mode: PlayerMode.MEDIA_PLAYER);
+
+
     // Map<String, dynamic> data = await parseJsonFromAssets('assets/json/levelData.json');
     // levelDataList = data["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
     Map<String, dynamic> mapJson = MapJsonClass.getMapJson();
+    storyDataJson = MapJsonClass.getStoryMapJson();
     levelDataList = mapJson["levels"].map<LevelData>((x) => LevelData.fromJson(x)).toList();
 
     await loadSaveData();
 
 
-    if(getLastUnlockedLevel() <= 18){
+    if(getLastUnlockedLevel() <= 18 && false){
       isCustomMapAvailable = false;
     }else{
       isCustomMapAvailable = true;
@@ -1197,6 +1267,17 @@ class GlobalStatus with ChangeNotifier {
         }
       }
     }
+
+    String rule = levelData.rule;
+    if(rule.startsWith("limit")){
+      int limitNum = int.parse(rule.substring(5));
+      print("limitNUm");
+      print(limitNum);
+      levelPersonLimit = limitNum;
+    }
+
+
+
   }
 
   void movePerson({TileData tile, Direction d}) async {
@@ -1274,7 +1355,7 @@ class GlobalStatus with ChangeNotifier {
           _isGameCleared = true;
           print("muyaho!");
           audioCache.play(SoundPath.clear, mode: PlayerMode.LOW_LATENCY);
-          if (currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY) {
+          if (currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY || currentGameMode == GameMode.STORY_LEVEL_PLAY) {
             clearProcess();
           }else if(currentGameMode == GameMode.CUSTOM_LEVEL_EDITING){
             Map<String, dynamic> levelStarInfo = getLevelStarInfo();
@@ -1348,7 +1429,7 @@ class GlobalStatus with ChangeNotifier {
         }
       }
 
-      if (cnt >= 5) {
+      if (cnt >= levelPersonLimit) {
         print("five!!!!!!!!!!!1");
 
         _highlightTileMap[HighlightTile.five].add(destTile);
@@ -1383,7 +1464,7 @@ class GlobalStatus with ChangeNotifier {
       if (fiveFlag) {
         // audioCache.play(SoundPath.beep, mode: PlayerMode.LOW_LATENCY);
         runVibrate(duration: 500);
-        showCustomToast("5인 이상 집합 금지!", ToastType.normal);
+        showCustomToast("${levelPersonLimit}인 이상 집합 금지!", ToastType.normal);
 
         _counter.increaseValue("five");
       }

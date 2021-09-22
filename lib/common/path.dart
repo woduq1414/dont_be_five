@@ -36,4 +36,7 @@ class SoundPath {
   static const String isolate = "sounds/isolate.mp3";
   static const String vaccine = "sounds/vaccine.mp3";
 
+  static const String button = "sounds/button.mp3";
+  static const String lobby = "sounds/lobby.mp3";
+
 }

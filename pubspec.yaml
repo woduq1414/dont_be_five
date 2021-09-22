@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.0+9
+version: 1.2.0+10
 
 environment:
   sdk: '>=2.8.0 <3.0.0'
@@ -90,6 +90,19 @@ flutter:
     - family: 공고딕bold
       fonts:
         - asset: assets/fonts/Gong Gothic Bold.ttf
+    - family: 나눔스퀘어bold
+      fonts:
+        - asset: assets/fonts/NanumSquareB.ttf
+    - family: 나눔스퀘어extrabold
+      fonts:
+        - asset: assets/fonts/NanumSquareEB.ttf
+    - family: 나눔스퀘어light
+      fonts:
+        - asset: assets/fonts/NanumSquareL.ttf
+    - family: 나눔스퀘어regular
+      fonts:
+        - asset: assets/fonts/NanumSquareR.ttf
+
     - family: maticons
       fonts:
         - asset: assets/fonts/maticon.ttf

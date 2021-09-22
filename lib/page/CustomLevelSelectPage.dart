@@ -154,7 +154,10 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       nicknameSetCheck(context: context);
     });
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+      gs.audioPlayer.resume();
+    });
     getCustomLevelList();
 
     super.initState();

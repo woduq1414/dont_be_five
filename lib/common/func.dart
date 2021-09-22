@@ -39,7 +39,12 @@ void moveToLevel(
   if (isCustomLevel == true) {
     // gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
   } else {
-    gs.currentGameMode = GameMode.ORIGINAL_LEVEL_PLAY;
+    if(level >= 5000){
+      gs.currentGameMode = GameMode.STORY_LEVEL_PLAY;
+    }else{
+      gs.currentGameMode = GameMode.ORIGINAL_LEVEL_PLAY;
+    }
+
   }
   // GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
 
