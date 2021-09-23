@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dont_be_five/common/Font.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/firebase.dart';
 import 'package:dont_be_five/common/func.dart';
@@ -13,8 +14,10 @@ import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/page/NewHomePage.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
+import 'package:dont_be_five/widget/BackgroundScreen.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
@@ -171,7 +174,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
       onWillPop: () async {
         Navigator.pushReplacement(
           context,
-          FadeRoute(page: HomePage()),
+          FadeRoute(page: NewHomePage()),
         );
 
         // if(Navigator.)
@@ -181,15 +184,15 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
         return true;
       },
       child: SafeArea(
-        child: Container(
-            color: Colors.white,
+        child: BackgroundScreen(
+            // color: Colors.white,
             child: Stack(
               children: <Widget>[
-                SizedBox.expand(
-                  child: CustomPaint(
-                    painter: BackgroundPainter(context: context),
-                  ),
-                ),
+                // SizedBox.expand(
+                //   child: CustomPaint(
+                //     painter: BackgroundPainter(context: context),
+                //   ),
+                // ),
 
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -322,6 +325,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                                       child: Icon(
                                         Icons.chevron_left,
                                         size: gs.s1(),
+                                        color: primaryPurple,
                                       )),
                                 ),
                                 // SizedBox(width: gs.s4(),),
@@ -347,6 +351,7 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                                       child: Icon(
                                         Icons.chevron_right,
                                         size: gs.s1(),
+                                        color: primaryPurple,
                                       )),
                                 ),
 
@@ -409,9 +414,11 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
       color: Colors.transparent,
       child: Container(
           height: 80,
-          margin: EdgeInsets.symmetric(vertical: 5),
+          margin: EdgeInsets.symmetric(vertical: 5,),
           padding: EdgeInsets.only(top: 2, left: 5, bottom: 2),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.5)),
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.8),
+          borderRadius: BorderRadius.all(Radius.circular(7))
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -422,15 +429,16 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                   children: [
                     Text(
                       customLevelJson["title"],
-                      style: TextStyle(fontSize: gs.s4()),
+                      style: TextStyle(fontSize: gs.s4() * 0.9, fontFamily: Font.nanumBold),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+
                     ),
                     Row(
                       children: [
                         Text(
                           customLevelJson["nickname"],
-                          style: TextStyle(fontSize: gs.s5() * 0.8),
+                          style: TextStyle(fontSize: gs.s5() * 0.8, fontFamily: Font.nanumBold),
                           textAlign: TextAlign.left,
                         ),
                         customLevelJson["isMine"] == true
@@ -458,13 +466,13 @@ class _CustomLevelSelectPageState extends State<CustomLevelSelectPage> {
                 },
                 child: Container(
                   height: 80,
-                  color: Colors.white.withOpacity(0.2),
+                  color: primaryPurple.withOpacity(0.15),
                   width: 55,
                   child: Center(
                       child: Icon(
                     Icons.arrow_right_sharp,
                     size: gs.s1() * 1.1,
-                    color: Colors.white,
+                    color: primaryPurple
                   )),
                 ),
               )

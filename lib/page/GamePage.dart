@@ -194,8 +194,8 @@ class _GamePageState extends State<GamePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           isAchieved == true
-              ? Icon(Icons.star, color: Colors.yellowAccent.withOpacity(0.8), size: gs.s3())
-              : Icon(Icons.star, color: Colors.white.withOpacity(0.8), size: gs.s3()),
+              ? Icon(Icons.star, color: Colors.white.withOpacity(1), size: gs.s3())
+              : Icon(Icons.star, color: Colors.white.withOpacity(0.2), size: gs.s3()),
           SizedBox(
             height: 3,
           ),
@@ -203,7 +203,7 @@ class _GamePageState extends State<GamePage> {
               style: TextStyle(
                   color: Colors.white,
                   decoration: TextDecoration.none,
-                  fontSize: gs.s7() * 1.2,
+                  fontSize: starConditionText.length <= 5 ? gs.s7() * 1.2 : gs.s7(),
                   fontFamily: Font.nanumLight))
         ],
       ),

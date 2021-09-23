@@ -104,6 +104,17 @@ class GlobalStatus with ChangeNotifier {
   }
 
   ///////////////// GAME SYSTEM VAR
+
+  String _nickname;
+
+
+  String get nickname => _nickname;
+
+  set nickname(String value) {
+    _nickname = value;
+    notifyListeners();
+  }
+
   Box<SaveData> box;
 
   AudioCache _audioCache;
@@ -285,6 +296,15 @@ class GlobalStatus with ChangeNotifier {
   }
 
   int currentLevel = 0;
+
+  int _displayLevel = 0;
+
+
+  int get displayLevel => _displayLevel;
+
+  set displayLevel(int value) {
+    _displayLevel = value;
+  }
 
   int _levelPersonLimit = 5;
 
@@ -538,7 +558,7 @@ class GlobalStatus with ChangeNotifier {
 
   int getLastUnlockedLevel() {
     SaveData saveData = box.get('saveData');
-    for (int i = 0; i < saveData.levelProcessList.length; i++) {
+    for (int i = 0; i < 5000; i++) {
       if (saveData.levelProcessList[i] == -1) {
         return i;
       }
@@ -1172,6 +1192,12 @@ class GlobalStatus with ChangeNotifier {
   init() async {
     audioCache = AudioCache();
 
+    var storage = FlutterSecureStorage();
+    nickname = await storage.read(key: "nickname");
+    if(_nickname == null){
+      nickname = "DBFive";
+    }
+
     audioPlayer = await audioCache.loop(SoundPath.lobby, mode: PlayerMode.MEDIA_PLAYER);
 
 
@@ -1193,7 +1219,6 @@ class GlobalStatus with ChangeNotifier {
 
 
 
-    var storage = FlutterSecureStorage();
 
     String savedVolumeValue = await storage.read(key: "volumeValue");
     String savedIsVibrate = await storage.read(key: "isVibrate");

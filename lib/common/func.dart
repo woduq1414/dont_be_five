@@ -33,8 +33,17 @@ String getRandString(int len) {
 }
 
 void moveToLevel(
-    {int level, BuildContext context, bool isSkipTutorial = false, bool isCustomLevel, LevelData customLevelData}) async {
+    {int level, BuildContext context, bool isSkipTutorial = false, bool isCustomLevel, LevelData customLevelData, int displayLevel}) async {
   GlobalStatus gs = context.read<GlobalStatus>();
+  print(displayLevel);
+  print("!!!!!!!!!!!!1");
+  if(displayLevel != null){
+    gs.displayLevel = displayLevel;
+
+  }else{
+    gs.displayLevel = level;
+  }
+
 
   if (isCustomLevel == true) {
     // gs.currentGameMode = GameMode.CUSTOM_LEVEL_EDITING;
@@ -367,7 +376,7 @@ dynamic showPublishCustomLevelDialog({BuildContext context}) {
 
                               Navigator.push(
                                 context,
-                                FadeRoute(page: CustomLevelSelectPage()),
+                                FadeRoute(page: CustomLevelSelectPage(page : 0)),
                               );
 
                             },

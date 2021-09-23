@@ -177,8 +177,8 @@ Widget itemContainerBuilder({BuildContext context}) {
     child: Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-          decoration:
-              BoxDecoration(color: Color.fromRGBO(50, 50, 50, 0.7), borderRadius: BorderRadius.all(Radius.circular(10))),
+          // decoration:
+          //     BoxDecoration(color: Color.fromRGBO(50, 50, 50, 0.7), borderRadius: BorderRadius.all(Radius.circular(10))),
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             child: Row(

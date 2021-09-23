@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    // GamesServices.signIn();
+    GamesServices.signIn();
 
     return MultiProvider(
       providers: [
@@ -109,7 +109,7 @@ class MyApp extends StatelessWidget {
           ),
           home: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              return NewHomePage();
+              return HomePage();
             },
           ),
         ),

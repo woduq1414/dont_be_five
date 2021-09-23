@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
 import 'package:flutter/cupertino.dart';
@@ -66,59 +67,80 @@ class _ItemState extends State<Item> with TickerProviderStateMixin {
       _isSelected = gs.selectedItem == item;
     });
 
-
-
-
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 5),
       child: GestureDetector(
         onTap: () {
-
-          if(_isSelected){
+          if (_isSelected) {
             gs.selectItem(null);
-          }else{
+          } else {
             gs.selectItem(item);
           }
-
-
-
         },
-        child: Container(
-            decoration: BoxDecoration(
-                color: _isSelected ? Color.fromRGBO(245, 245, 245,1): Color.fromRGBO(240, 240, 240, 0.8),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-                boxShadow: _isSelected
-                    ? [
-                        BoxShadow(
-                            color: Colors.white.withOpacity(0.45),
-                            blurRadius: _animation.value,
-                            spreadRadius: _animation.value)
-                      ]
-                    : []),
-            child: Stack(
-              children: <Widget>[
-                Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    child: Image.asset(
-                      item.imagePath,
-                      width: 35,
-                    )),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(50))),
-                    child: Material(
-                        color: Colors.transparent,
-                        child: Text(
-                          gs.levelData.items[itemName].toString(),
-                          style: TextStyle(fontSize: gs.s6()),
-                        )),
-                  ),
-                )
-              ],
-            )),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+                width: gs.s1() * 1.8,
+                height: gs.s1() * 1.8,
+                decoration: BoxDecoration(
+                    color: _isSelected ? Color.fromRGBO(245, 245, 245, 1) : Color.fromRGBO(255, 255, 255, 0.7),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    boxShadow: _isSelected
+                        ? [
+                            BoxShadow(
+                                color: Colors.white.withOpacity(0.45),
+                                blurRadius: _animation.value,
+                                spreadRadius: _animation.value)
+                          ]
+                        : []),
+                child: Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                          padding: EdgeInsets.only(left:6, top:6, right:6, bottom : 6),
+                          child: Image.asset(
+                            item.imagePath,
+
+                            // width: 35,
+                          )),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: Text(
+                        item.caption,
+                        style: TextStyle(color: _isSelected ? primaryPurpleDark : Colors.black12.withOpacity(0.6), fontSize: gs.s5() * 0.82, ),
+                      ),
+                    ),
+                    SizedBox(height: 4,)
+                  ],
+                )),
+            SizedBox(height : 3),
+            Container(
+              alignment: Alignment.center,
+              width: gs.s1() * 1.8,
+              padding: EdgeInsets.symmetric(vertical: 2),
+              decoration: BoxDecoration(
+                  color: _isSelected ? Color.fromRGBO(245, 245, 245, 1) : Color.fromRGBO(255, 255, 255, 0.7),
+                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                  boxShadow: _isSelected
+                      ? [
+                          BoxShadow(
+                              color: Colors.white.withOpacity(0.45),
+                              blurRadius: _animation.value,
+                              spreadRadius: _animation.value)
+                        ]
+                      : []),
+              child: Material(
+                color: Colors.transparent,
+                child: Text(
+                  gs.levelData.items[itemName].toString(),
+                  style: TextStyle(color: _isSelected ? primaryPurpleDark : Colors.black12.withOpacity(0.6), fontSize: gs.s5() * 0.72),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

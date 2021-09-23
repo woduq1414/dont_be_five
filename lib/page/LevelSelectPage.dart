@@ -1,20 +1,25 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dont_be_five/common/Font.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/func.dart';
+import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/LevelData.dart';
 import 'package:dont_be_five/data/PersonData.dart';
 import 'package:dont_be_five/data/TileData.dart';
 import 'package:dont_be_five/data/Tiles.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/page/NewHomePage.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:dont_be_five/painter/BackgroundPainter.dart';
+import 'package:dont_be_five/widget/BackgroundScreen.dart';
 import 'package:dont_be_five/widget/Dialog.dart';
 import 'package:dont_be_five/widget/GameMap.dart';
 import 'package:dont_be_five/data/global.dart';
 import 'package:dont_be_five/provider/globalProvider.dart';
+import 'package:dont_be_five/widget/LevelSquare.dart';
 import 'package:dont_be_five/widget/Person.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -40,10 +45,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     if (page == null) {
       // page = 0;
 
-
       page = 0;
-
-
     }
     _page = page;
   }
@@ -75,33 +77,25 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
 
     _levelProcessList = gs.getLevelProcessList();
 
-    print(_page);
-    print(_page);
-    print(_page);
-    print(_page);
-    print(_page);
-    print(_page);
-    print(_page);
-
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacement(
           context,
-          FadeRoute(page: HomePage()),
+          FadeRoute(page: NewHomePage()),
         );
 
         return true;
       },
       child: SafeArea(
-        child: Container(
-            color: Colors.white,
+        child: BackgroundScreen(
+
             child: Stack(
               children: <Widget>[
-                SizedBox.expand(
-                  child: CustomPaint(
-                    painter: BackgroundPainter(context: context),
-                  ),
-                ),
+                // SizedBox.expand(
+                //   child: CustomPaint(
+                //     painter: BackgroundPainter(context: context),
+                //   ),
+                // ),
 
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -123,13 +117,14 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(Icons.star, color: primaryYellow, size: gs.s2()),
+                        Icon(Icons.star, color: Colors.white, size: gs.s2()),
                         SizedBox(
                           width: 3,
                         ),
                         Material(
                             color: Colors.transparent,
-                            child: Text("${gs.getTotalStarCount()}/${min(gs.getLastUnlockedLevel(), gs.getFinalAvailableLevelSeq()) * 3}",
+                            child: Text(
+                                "${gs.getTotalStarCount()}/${min(gs.getLastUnlockedLevel(), gs.getFinalAvailableLevelSeq()) * 3}",
                                 style: TextStyle(fontSize: gs.s4(), color: Colors.white)))
                       ],
                     ),
@@ -147,9 +142,9 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                           child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 3),
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+                                  borderRadius: BorderRadius.all(Radius.circular(1000)), color: Colors.white.withOpacity(0.8)),
                               child: Icon(
-                                Icons.chevron_left,
+                                Icons.chevron_left, color: primaryPurple,
                                 size: gs.s1(),
                               )),
                         ),
@@ -181,9 +176,9 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                           child: Container(
                               margin: EdgeInsets.symmetric(horizontal: 3),
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
+                                  borderRadius: BorderRadius.all(Radius.circular(1000)), color: Colors.white.withOpacity(0.8)),
                               child: Icon(
-                                Icons.chevron_right,
+                                Icons.chevron_right,color: primaryPurple,
                                 size: gs.s1(),
                               )),
                         ),
@@ -200,7 +195,7 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
                       onTap: () {
                         Navigator.pushReplacement(
                           context,
-                          FadeRoute(page: HomePage()),
+                          FadeRoute(page: NewHomePage()),
                         );
                       },
                       child: Container(
@@ -295,89 +290,5 @@ class _LevelSelectPageState extends State<LevelSelectPage> {
     );
   }
 
-  Widget levelBuilder({int level, int levelStatus, BuildContext context}) {
-    GlobalStatus gs = context.watch<GlobalStatus>();
-    List<bool> havingStar = [];
-    havingStar.add(levelStatus % 2 == 1);
-    havingStar.add(levelStatus ~/ 2 % 2 == 1);
-    havingStar.add(levelStatus ~/ 4 % 2 == 1);
 
-    int _cnt =0;
-    int _cnt2 =0;
-    return StatefulBuilder(builder: (BuildContext bc, StateSetter state) {
-
-      return  GestureDetector(
-
-        onLongPress: (){
-          if(level == 141){
-            state(() {
-              _cnt = _cnt + 1;
-            });
-            print(_cnt);
-            if(_cnt >= 5){
-              gs.unlockAllLevel();
-              gs.loadSaveData();
-            }
-          }
-          if(level == 142){
-            state(() {
-              _cnt= _cnt + 1;
-            });
-            print(_cnt);
-            if(_cnt >= 5){
-              showCouponCodeInputDialog(context: context);
-            }
-          }
-        },
-
-        onTap: levelStatus != -1
-            ? () {
-          moveToLevel(level: level, context: context);
-        }
-            : null,
-        child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            padding: EdgeInsets.symmetric(horizontal: 0),
-            decoration: levelStatus != -1
-                ? BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              color: Colors.white.withOpacity(1),
-              boxShadow: [
-                BoxShadow(
-                  color: levelStatus == 7 ? Colors.yellowAccent.withOpacity(0.5) : Colors.white12.withOpacity(0.5),
-                  spreadRadius: levelStatus == 7 ? 3 : 2,
-                  blurRadius: 2,
-                  offset: Offset(0, 2), // changes position of shadow
-                ),
-              ],
-            )
-                : BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.grey.withOpacity(0.5)),
-            child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Material(
-                        color: Colors.transparent,
-                        child: Text(
-                          level.toString(),
-                          style: TextStyle(fontSize: 25, color: levelStatus != -1 ? Colors.black : Colors.black.withOpacity(0.5)),
-                        )),
-                    levelStatus != -1
-                        ? Container(
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: havingStar.map((e) {
-                            return e == true
-                                ? Flexible(flex: 2, child: Icon(Icons.star, color: primaryYellow, size: gs.s3()))
-                                : Flexible(flex: 2, child: Icon(Icons.star_border, size: gs.s3()));
-                          }).toList()),
-                    )
-                        : Container(),
-                  ],
-                ))),
-      );
-
-    });
-  }
 }

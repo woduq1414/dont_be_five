@@ -6,6 +6,7 @@ import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/HomePage.dart';
+import 'package:dont_be_five/page/NewHomePage.dart';
 import 'package:dont_be_five/page/RouterPage.dart';
 import 'package:dont_be_five/data/ItemData.dart';
 import 'package:dont_be_five/data/TileData.dart';
@@ -1245,7 +1246,7 @@ class _MapEditPageState extends State<MapEditPage> {
           gs.notify();
           Navigator.pushReplacement(
             context,
-            FadeRoute(page: HomePage()),
+            FadeRoute(page: NewHomePage()),
           );
         },
         cancelButtonAction: () {

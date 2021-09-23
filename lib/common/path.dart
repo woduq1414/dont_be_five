@@ -19,6 +19,9 @@ class ImagePath {
   static const String isolated_tile = "./assets/images/isolated_tile.png";
   static const String confined_tile = "./assets/images/confined_tile.png";
 
+  static const String newLogoSquare = "./assets/images/new_logo.png";
+  static const String backgroundShape = "./assets/images/new_background.png";
+
 
   static getTutorialImagePath(int page){
     return "./assets/images/tutorial${page}.png";

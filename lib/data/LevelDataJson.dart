@@ -1021,25 +1021,25 @@ class MapJsonClass {
       "stories": [
         {
           "time": "2020년 12월",
-          "confirmedSum": "52,550",
+          "confirmedSum": "26,288",
           "description": "23일, 수도권 내 첫 <5인 이상 집합 금지> 명령이 내려졌습니다. 변화된 상황 속에서 적응해나가야 합니다.",
           "levels": [5001, 5002, 5003]
         },
         {
           "time": "2021년 2월",
-          "confirmedSum": "81,908",
+          "confirmedSum": "9,728",
           "description": "26일, 국내 코로나19 백신 접종이 전국 보건소와 요양병원에서 일제히 시작되었습니다.",
           "levels": [5004, 5005]
         },
         {
           "time": "2021년 7월",
-          "confirmedSum": "81,908",
+          "confirmedSum": "40,079",
           "description": "12일, 수도권 거리두기 4단계 첫 날이 왔습니다. 오후 6시 이후에는 3인 이상 모일 수 없게되었습니다.",
           "levels": [5006, 5007, 5008]
         },
         {
           "time": "2021년 9월",
-          "confirmedSum": "248,048",
+          "confirmedSum": "51,831",
           "description": "6일, 수도권 내 6인 모임이 허용되었습니다. 현재 18세 이상 인구를 기준으로 40% 가량이 2차 접종까지 마쳤습니다.",
           "levels": [5009, 5010, 5011]
         }

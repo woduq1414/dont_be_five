@@ -1,3 +1,4 @@
+import 'package:dont_be_five/common/Font.dart';
 import 'package:dont_be_five/common/color.dart';
 import 'package:dont_be_five/common/path.dart';
 import 'package:dont_be_five/common/func.dart';
@@ -6,6 +7,7 @@ import 'package:dont_be_five/common/route.dart';
 import 'package:dont_be_five/data/ToastType.dart';
 import 'package:dont_be_five/page/CustomLevelSelectPage.dart';
 import 'package:dont_be_five/page/StoryLevelSelectPage.dart';
+import 'package:dont_be_five/widget/BackgroundScreen.dart';
 import 'package:dont_be_five/widget/CustomButton.dart';
 import 'package:dont_be_five/page/TestPage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -22,6 +24,8 @@ import 'package:yaml/yaml.dart';
 import 'package:flutter/services.dart';
 import 'package:launch_review/launch_review.dart';
 
+import 'MenuBox.dart';
+
 YYDialog showGoalDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
@@ -30,339 +34,191 @@ YYDialog showGoalDialog(BuildContext context) {
 
   return yy.build(context)
     ..barrierDismissible = false
-    ..width = gs.deviceSize.width * 0.9
-    ..backgroundColor = Colors.white12.withOpacity(0.9)
+    ..width = gs.deviceSize.width * 1
+    ..height = gs.deviceSize.height
+    // ..backgroundColor = Colors.white12.withOpacity(0.9)
     ..widget(
       WillPopScope(
         onWillPop: () async {
           return false;
         },
-        child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            decoration:
-                BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)), color: Colors.white.withOpacity(0.8)),
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Material(
-                    color: Colors.transparent,
-                    child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
-                        ? Text(
-                            "LEVEL ${level.toString()}",
-                            style: TextStyle(fontSize: 35),
-                          )
-                        : gs.currentGameMode == GameMode.STORY_LEVEL_PLAY
-                            ? Text(
-                                "STORY LEVEL",
-                                style: TextStyle(fontSize: 27),
-                              )
-                            : Text(
-                                "CUSTOM LEVEL",
-                                style: TextStyle(fontSize: 27),
+        child: BackgroundScreen(
+          // isShapeShow: false,
+          child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: gs.s3(), vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                // color: Colors.white.withOpacity(0.8)
+              ),
+              child: Center(
+                  child: Column(
+                // verticalDirection: VerticalDirection.up ,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Material(
+                      color: Colors.transparent,
+                      child: gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ||
+                              gs.currentGameMode == GameMode.STORY_LEVEL_PLAY
+                          ? Text(
+                              gs.displayLevel.toString(),
+                              style: TextStyle(
+                                  fontSize: gs.s1() * 2,
+                                  color: Colors.white,
+                                  fontFamily: Font.nanumExtraBold,
+                                  fontWeight: FontWeight.bold),
+                            )
+                          : Text(
+                              ": )",
+                              style: TextStyle(
+                                  fontSize: gs.s1() * 2,
+                                  color: Colors.white,
+                                  fontFamily: Font.nanumExtraBold,
+                                  fontWeight: FontWeight.bold),
+                            )),
+                  Material(
+                      color: Colors.transparent,
+                      child: Text(
+                        gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                            ? "단계모드"
+                            : gs.currentGameMode == GameMode.STORY_LEVEL_PLAY
+                                ? "스토리모드"
+                                : "메이커스센터",
+                        style: TextStyle(
+                            fontSize: gs.s3(),
+                            color: Colors.white,
+                            fontFamily: Font.nanumExtraBold,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 6.0),
+                      )),
+                  SizedBox(
+                    height: 23,
+                  ),
+                  buildCompleteStarInfo(context),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                      ? MenuBox(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              FadeRoute(
+                                  page: LevelSelectPage(
+                                page: (level - 1) ~/ 12,
                               )),
-                Material(
-                    color: Colors.transparent,
-                    child: Text(
-                      "COMPLETE!",
-                      style: TextStyle(fontSize: 35),
-                    )),
-                SizedBox(
-                  height: 15,
-                ),
-                buildStarInfo(context),
-                SizedBox(
-                  height: 15,
-                ),
-                gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
-                    ? Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: GestureDetector(
+                            );
+                          },
+                          title: "목록으로",
+                          subtitle: "단계 목록으로 되돌아갑니다")
+                      : gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
+                          ? MenuBox(
+                              onTap: () {
+                                backToEditPage(context: context);
+                              },
+                              title: "수정 화면으로",
+                              subtitle: "맵 수정 모드로 되돌아갑니다")
+                          : MenuBox(
                               onTap: () {
                                 Navigator.pushReplacement(
                                   context,
                                   FadeRoute(
-                                      page: LevelSelectPage(
+                                      page: StoryLevelSelectPage(
                                     page: (level - 1) ~/ 12,
                                   )),
                                 );
                               },
-                              child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                                      color: Color.fromRGBO(200, 200, 200, 0.8)),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(Icons.arrow_back, size: gs.s3()),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Text("레벨 선택으로",
-                                            style: TextStyle(
-                                              fontSize: gs.s5(),
-                                            )),
-                                      ),
-                                    ],
-                                  )),
-                            ),
-                          ),
-                        ],
-                      )
-                    : gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
-                        ? Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    backToEditPage(context: context);
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(Icons.arrow_back, size: gs.s3()),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Text("수정 화면으로",
-                                                style: TextStyle(
-                                                  fontSize: gs.s5(),
-                                                )),
-                                          ),
-                                        ],
-                                      )),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      FadeRoute(
-                                          page: StoryLevelSelectPage(
-                                        page: (level - 1) ~/ 12,
-                                      )),
-                                    );
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          color: Color.fromRGBO(200, 200, 200, 0.8)),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(Icons.arrow_back, size: gs.s3()),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Text("레벨 선택으로",
-                                                style: TextStyle(
-                                                  fontSize: gs.s5(),
-                                                )),
-                                          ),
-                                        ],
-                                      )),
-                                ),
-                              ),
-                            ],
-                          ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // yy.dismiss();
+                              title: "목록으로",
+                              subtitle: "스토리 목록으로 되돌아갑니다"),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  MenuBox(
+                      onTap: () {
+                        // yy.dismiss();
 
-                          if (gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ||
-                              gs.currentGameMode == GameMode.STORY_LEVEL_PLAY) {
-                            moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+                        if (gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY ||
+                            gs.currentGameMode == GameMode.STORY_LEVEL_PLAY) {
+                          moveToLevel(level: gs.levelData.seq, context: context, isSkipTutorial: true);
+                        } else {
+                          if (gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING) {
+                            moveToLevel(
+                                context: context,
+                                isSkipTutorial: true,
+                                isCustomLevel: true,
+                                customLevelData: gs.tempCustomLevelData);
                           } else {
-                            if (gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING) {
-                              moveToLevel(
-                                  context: context,
-                                  isSkipTutorial: true,
-                                  isCustomLevel: true,
-                                  customLevelData: gs.tempCustomLevelData);
-                            } else {
-                              moveToLevel(
-                                  context: context,
-                                  isSkipTutorial: true,
-                                  isCustomLevel: true,
-                                  customLevelData: gs.playingCustomLevelData);
-                            }
+                            moveToLevel(
+                                context: context,
+                                isSkipTutorial: true,
+                                isCustomLevel: true,
+                                customLevelData: gs.playingCustomLevelData);
                           }
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                color: Color.fromRGBO(200, 200, 200, 0.8)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.replay, size: gs.s3()),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Text("다시하기",
-                                      style: TextStyle(
-                                        fontSize: gs.s5(),
-                                      )),
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
-                    ? Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                // yy.dismiss();
+                        }
+                      },
+                      title: "다시하기",
+                      subtitle: "현재 레벨을 다시 플레이합니다."),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  gs.currentGameMode == GameMode.CUSTOM_LEVEL_EDITING
+                      ? MenuBox(
 
-                                publishCustomLevel(context: context);
+                      isHighlight: true,
+                          onTap: () {
+                            // yy.dismiss();
+
+                            publishCustomLevel(context: context);
+                          },
+                          title: "게시하기",
+                          subtitle: "제작한 맵을 온라인에 업로드합니다")
+                      : gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY
+                          ? MenuBox(
+                      isHighlight: true,
+                              onTap: () {
+                                yy.dismiss();
+                                backToCustomLevelSelectPage(context: context);
                               },
-                              child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                                      color: primaryYellow.withOpacity(0.8)),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(Icons.arrow_forward, size: gs.s3()),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Text("게시하기",
-                                            style: TextStyle(
-                                              fontSize: gs.s5(),
-                                            )),
-                                      ),
-                                    ],
-                                  )),
-                            ),
-                          ),
-                        ],
-                      )
-                    : gs.currentGameMode == GameMode.CUSTOM_LEVEL_PLAY
-                        ? Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: GestureDetector(
+                              title: "목록으로",
+                              subtitle: "커스텀맵 목록으로 되돌아갑니다")
+                          : gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
+                              ? MenuBox(
+                                  isHighlight: true,
                                   onTap: () {
-                                    yy.dismiss();
-                                    backToCustomLevelSelectPage(context: context);
+                                    // yy.dismiss();
+                                    moveToLevel(level: gs.levelData.seq + 1, context: context);
                                   },
-                                  child: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                                          color: primaryYellow.withOpacity(0.8)),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(Icons.arrow_forward, size: gs.s3()),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Text("맵 목록으로",
-                                                style: TextStyle(
-                                                  fontSize: gs.s5(),
-                                                )),
-                                          ),
-                                        ],
-                                      )),
-                                ),
-                              ),
-                            ],
-                          )
-                        : gs.currentGameMode == GameMode.ORIGINAL_LEVEL_PLAY
-                            ? Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // yy.dismiss();
-                                        moveToLevel(level: gs.levelData.seq + 1, context: context);
-                                      },
-                                      child: Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                                          decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                                              color: primaryYellow.withOpacity(0.8)),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Icon(Icons.arrow_forward, size: gs.s3()),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Material(
-                                                color: Colors.transparent,
-                                                child: Text("다음 레벨로",
-                                                    style: TextStyle(
-                                                      fontSize: gs.s5(),
-                                                    )),
-                                              ),
-                                            ],
-                                          )),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Container(),
-              ],
-            ))),
+                                  title: "다음 단계로",
+                                  subtitle: "${gs.displayLevel + 1} 단계로 진행합니다.")
+                              : Container(),
+                ],
+              ))),
+        ),
       ),
     )
     ..animatedFunc = (child, animation) {
-      return ScaleTransition(
+      Animation<Offset> custom;
+      custom = Tween<Offset>(
+        begin: Offset(-1.0, 0.0),
+        end: Offset(0.0, 0.0),
+      ).chain(CurveTween(curve: Curves.easeOut)).animate(animation);
+      return SlideTransition(
+        position: custom,
         child: child,
-        scale: Tween(begin: 0.0, end: 1.0).animate(animation),
       );
+      // return ScaleTransition(
+      //   child: child,
+      //   scale: Tween(begin: 0.0, end: 1.0).animate(animation),
+      // );
     }
+    ..duration = Duration(milliseconds: 500)
     ..show();
 }
 
 YYDialog showPauseDialog(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
-  int level = gs.levelData.seq;
+  int level = gs.displayLevel;
 
   GameMode currentGameMode = gs.currentGameMode;
 
@@ -586,6 +442,29 @@ YYDialog showPauseDialog(BuildContext context) {
     ..show();
 }
 
+Widget buildCompleteStarInfo(BuildContext context) {
+  GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
+  int level = gs.levelData.seq;
+  Map<String, dynamic> levelStarInfo = gs.getLevelStarInfo(psc: gs.levelData.pStarCondition);
+  return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: levelStarInfo.keys.map<Widget>((cond) {
+        return Container(
+            margin: EdgeInsets.symmetric(horizontal: gs.s9()),
+            child: levelStarInfo[cond]
+                ? Icon(
+                    Icons.star,
+                    size: gs.s1() * 1.5,
+                    color: Colors.white.withOpacity(0.8),
+                  )
+                : Icon(
+                    Icons.star_border,
+                    size: gs.s1() * 1.5,
+                    color: Colors.white.withOpacity(0.8),
+                  ));
+      }).toList());
+}
+
 Widget buildStarInfo(BuildContext context) {
   GlobalStatus gs = Provider.of<GlobalStatus>(context, listen: false);
   int level = gs.levelData.seq;
@@ -599,7 +478,7 @@ Widget buildStarInfo(BuildContext context) {
                 ? Icon(
                     Icons.star,
                     size: 40,
-                    color: primaryYellow,
+                    color: primaryPurple,
                   )
                 : Icon(
                     Icons.star_border,
@@ -858,25 +737,25 @@ YYDialog showSettingDialog({BuildContext context}) {
                   SizedBox(
                     height: 8,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomButton(
-                        backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
-                        onTap: () {
-                          LaunchReview.launch(
-                            androidAppId: "com.aperture.dont_be_five",
-                          );
-                        },
-                        child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                            child: Text(
-                              "별점 평가/리뷰 하기",
-                              style: TextStyle(fontSize: gs.s5()),
-                            )),
-                      )
-                    ],
-                  )
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     CustomButton(
+                  //       backgroundColor: Color.fromRGBO(220, 220, 220, 0.7),
+                  //       onTap: () {
+                  //         LaunchReview.launch(
+                  //           androidAppId: "com.aperture.dont_be_five",
+                  //         );
+                  //       },
+                  //       child: Container(
+                  //           padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                  //           child: Text(
+                  //             "별점 평가/리뷰 하기",
+                  //             style: TextStyle(fontSize: gs.s5()),
+                  //           )),
+                  //     )
+                  //   ],
+                  // )
                 ])),
       ],
     ))
@@ -1145,7 +1024,7 @@ dynamic showSetNicknameDialog({BuildContext context}) async {
 
   String nickname = await storage.read(key: "nickname");
   if (nickname == null) {
-    nickname = "익명";
+    nickname = "DBFive";
   }
   return yy.build(context)
     ..barrierDismissible = false
@@ -1239,6 +1118,7 @@ dynamic showSetNicknameDialog({BuildContext context}) async {
 
                                 if (text.length >= 1 && text.length <= 10) {
                                   storage.write(key: "nickname", value: text);
+                                  gs.nickname = text;
                                   yy.dismiss();
                                 } else {
                                   showCustomToast("공백이 없는 1자 이상 10자 이하의 닉네임을 입력해주세요.", ToastType.small);

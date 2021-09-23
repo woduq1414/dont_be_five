@@ -31,7 +31,7 @@ class HighlightTile {
       paint = Paint()
         ..shader = ui.Gradient.radial(
           getCenterOffset(Tiles.getTileCenterOffset(tile: selectedTile, tileCornerOffsetList: tileCornerOffsetList),  Tiles.getTileCenterOffset(tile: targetTile, tileCornerOffsetList: tileCornerOffsetList)),
-          25,
+          30,
 
           [
             Colors.white.withOpacity(1),
